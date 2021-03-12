@@ -1,6 +1,7 @@
-import { getStorageItem } from 'utils';
+import { useCurrentUser } from './useCurrentUser';
 
 export function useAuth() {
-  const authToken = getStorageItem<string>('x-auth-token');
-  return !!authToken;
+  const [user] = useCurrentUser();
+
+  return !!user;
 }

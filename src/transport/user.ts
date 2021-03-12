@@ -1,5 +1,5 @@
 import { NewUserInfo, User } from 'types';
-import { setStorageItem } from 'utils';
+import { setStorageItem, deleteStorageItem } from 'utils';
 import { UnauthorizedError } from './errors';
 import fetch from './fetch';
 import { HTTPMethod } from './types';
@@ -28,8 +28,12 @@ export async function login(email: string, password: string) {
   }
 
   if (response.status === 401) {
-    throw new UnauthorizedError();
+    throw new UnauthorizedError('Wrong Email or Password');
   }
+}
+
+export async function logout() {
+  deleteStorageItem('x-auth-token');
 }
 
 export async function register(userInfo: NewUserInfo) {

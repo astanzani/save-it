@@ -10,19 +10,20 @@ import {
 import { Alert } from '@material-ui/lab';
 import { AlternateEmailOutlined, LockOpen } from '@material-ui/icons';
 import { Redirect } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import classNames from 'classnames';
-import { login, UnauthorizedError } from 'transport';
 import { ReactComponent as SignInSVG } from 'assets/sign_in.svg';
 import { Routes } from 'const';
-import { useAuth } from 'hooks';
+import { loginUser } from 'store';
+import { useAuth, useCurrentUser } from 'hooks';
 import useStyles from './styles';
 
 export function SignIn() {
+  const dispatch = useDispatch();
+  const [, loading, error] = useCurrentUser();
+  const isAuthenticated = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
-  const isAuthenticated = useAuth();
   const classes = useStyles();
 
   const onChangeEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,17 +38,7 @@ export function SignIn() {
     e.preventDefault();
     e.stopPropagation();
 
-    try {
-      setLoading(true);
-      await login(email, password);
-    } catch (e) {
-      setLoading(false);
-      if (e instanceof UnauthorizedError) {
-        setError('Wrong email or password.');
-      } else {
-        setError('An unknown error occured. Please try again later.');
-      }
-    }
+    dispatch(loginUser({ email, password }));
   };
 
   const alertClassName = classNames(classes.errorAlert, {

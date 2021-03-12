@@ -21,8 +21,6 @@ export default async function (
 
   headers.set('Content-Type', 'application/json');
 
-  //eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2MDQzN2ZlMzEzMjFiZWE3MTQ2ZjcwZWEiLCJpYXQiOjE2MTUwNTU0MTR9.aa83BuC61WQb9InzPNu-XDEmw0JFuGTY_iJ768mIAg8
-
   const init: RequestInit = {
     method,
     body: payload,
