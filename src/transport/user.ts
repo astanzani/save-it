@@ -1,6 +1,5 @@
 import { NewUserInfo, User } from 'types';
 import { setStorageItem, deleteStorageItem } from 'utils';
-import { UnauthorizedError } from './errors';
 import fetch from './fetch';
 import { HTTPMethod } from './types';
 
@@ -28,7 +27,7 @@ export async function login(email: string, password: string) {
   }
 
   if (response.status === 401) {
-    throw new UnauthorizedError('Wrong Email or Password');
+    throw new Error('Wrong Email or Password');
   }
 }
 
