@@ -6,6 +6,7 @@ import { HTTPMethod } from './types';
 const BASE_URL = '/api/v1/users/';
 
 export async function getCurrentUser(): Promise<User> {
+  // TODO throw if !resp.ok
   const url = BASE_URL + 'current';
   const response = await fetch(url);
   const user = await response.json();

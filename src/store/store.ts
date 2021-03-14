@@ -12,6 +12,8 @@ export const store = configureStore({
   preloadedState: {
     user: {
       info: currentUser,
+      loading: false,
+      error: undefined,
     },
   },
 });

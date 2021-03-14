@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { login, getCurrentUser, logout } from 'transport';
 import { User } from 'types';
 import { deleteStorageItem, setStorageItem } from 'utils';
@@ -27,9 +27,7 @@ export const logoutUser = createAsyncThunk('user/logout', async () => {
 const user = createSlice({
   name: 'User',
   initialState: { info: undefined, loading: false, error: undefined } as State,
-  reducers: {
-    logout: (state, action: PayloadAction<void>) => {},
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder.addCase(loginUser.fulfilled, (state, action) => {
       state.info = action.payload;
