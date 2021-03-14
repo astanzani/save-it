@@ -2,6 +2,8 @@
 import { HTTPMethod } from './types';
 import { getStorageItem } from 'utils';
 
+const BASE_PROD_URL = 'https://save-it-be.herokuapp.com';
+
 export default async function (
   url: string,
   method: HTTPMethod = HTTPMethod.GET,
@@ -27,5 +29,11 @@ export default async function (
     headers,
   };
 
-  return fetch(url, init);
+  let finalUrl = url;
+
+  if (process.env.NODE_ENV === 'production') {
+    finalUrl = BASE_PROD_URL + url;
+  }
+
+  return fetch(finalUrl, init);
 }
