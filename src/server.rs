@@ -48,8 +48,8 @@ pub async fn start() -> io::Result<()> {
 }
 
 fn get_server_addr() -> String {
-    let port = env::var("port").unwrap_or_else(|_err| String::from(DEFAULT_PORT));
-    let mut addr = "127.0.0.1:".to_string();
+    let port = env::var("PORT").unwrap_or_else(|_err| String::from(DEFAULT_PORT));
+    let mut addr = "0.0.0.0:".to_string();
     addr.push_str(&port);
 
     addr
