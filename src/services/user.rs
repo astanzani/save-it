@@ -79,7 +79,7 @@ mod tests {
     use std::env;
 
     async fn setup() -> Database {
-        let db_uri = env::var("MONGO_URI").expect("Missing DB_URI env var");
+        let db_uri = env::var("MONGO_TEST_URI").expect("Missing MONGO_TEST_URI env var");
         let client = mongodb::Client::with_uri_str(&db_uri).await.unwrap();
         let db = client.database("save-it-test-db");
         db
