@@ -1,6 +1,7 @@
 use actix_cors::Cors;
+use actix_files::NamedFile;
 use actix_web::{http::header::HeaderName, web, App, HttpServer, Responder};
-use std::{env, io, str::FromStr, sync::Mutex};
+use std::{env, io, path::PathBuf, str::FromStr, sync::Mutex};
 
 use crate::controllers;
 use crate::loaders;
@@ -40,6 +41,7 @@ pub async fn start() -> io::Result<()> {
             .data(AppState { services_container })
             .route("/", web::get().to(index))
             .service(web::scope("api/v1").configure(controllers::user::config))
+            .service(actix_files::Files::new("/static", "../app/build/static"))
             .wrap(cors)
     })
     .bind(addr)?
@@ -55,6 +57,9 @@ fn get_server_addr() -> String {
     addr
 }
 
-async fn index() -> impl Responder {
-    format!("Hello")
+async fn index() -> Result<NamedFile, io::Error> {
+    let path: PathBuf = "../app/build/index.html".parse().unwrap();
+    Ok(NamedFile::open("../app/build/index.html")?)
+
+    // format!("Hello")
 }
