@@ -63,12 +63,10 @@ async fn login_user(
                 let token = generate_jwt(id);
                 match token {
                     Ok(token) => {
-                        // Allow http when running in debug mode
-                        let secure = if cfg!(debug_assertions) { false } else { true };
                         let auth_cookie = CookieBuilder::new("auth", token.clone())
                             .http_only(true)
-                            .secure(secure)
-                            .same_site(SameSite::Lax)
+                            .secure(true)
+                            .same_site(SameSite::Strict)
                             .max_age(time::Duration::week())
                             .finish();
                         // TODO: Remove token header ? (maybe needed for chrome ext)

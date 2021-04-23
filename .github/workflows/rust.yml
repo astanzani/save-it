@@ -2,22 +2,21 @@ name: Rust
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     env:
       MONGO_TEST_URI: mongodb+srv://test:zdZR40P5MinhHEw5@cluster0.oeorv.mongodb.net
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
+      - uses: actions/checkout@v2
+      - name: Build
+        run: cargo build --manifest-path ./api/Cargo.toml --verbose
+      - name: Run tests
+        run: cargo test --manifest-path ./api/Cargo.toml --verbose

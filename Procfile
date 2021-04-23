@@ -1,1 +1,1 @@
-web: ./target/release/save-it-api-v2
+web: ./api/target/release/save-it-api-v2

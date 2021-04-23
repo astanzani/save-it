@@ -1,12 +1,10 @@
-use actix_cors::Cors;
 use actix_files::NamedFile;
-use actix_web::{http::header::HeaderName, web, App, HttpServer, Responder};
-use std::{env, io, path::PathBuf, str::FromStr, sync::Mutex};
+use actix_web::{web, App, HttpServer};
+use std::{env, io, path::PathBuf, sync::Mutex};
 
 use crate::controllers;
 use crate::loaders;
 use crate::services::user::UserService;
-use std::collections::HashSet;
 
 const DEFAULT_PORT: &str = "8080";
 const USERS_COLLECTION: &str = "Users";
@@ -26,23 +24,18 @@ pub async fn start() -> io::Result<()> {
     let users_collection = db.collection(USERS_COLLECTION);
 
     HttpServer::new(move || {
-        let mut exposed_headers: HashSet<HeaderName> = HashSet::new();
-        exposed_headers.insert(HeaderName::from_str("x-auth-token").unwrap());
-        let cors = Cors::default()
-            .allowed_origin("http://localhost:3000")
-            .allow_any_header()
-            .allow_any_method()
-            .expose_headers(exposed_headers)
-            .supports_credentials();
+        let mut path = std::env::current_dir().unwrap();
+        let static_path: PathBuf = ["app", "build", "static"].iter().collect();
+        path.push(static_path);
         let services_container = ServicesContainer {
             user_service: Mutex::new(UserService::new(users_collection.clone())),
         };
         App::new()
             .data(AppState { services_container })
-            .route("/", web::get().to(index))
             .service(web::scope("api/v1").configure(controllers::user::config))
-            .service(actix_files::Files::new("/static", "../app/build/static"))
-            .wrap(cors)
+            .service(actix_files::Files::new("/static", path))
+            // Routes are defined client side by React, so send index.html for any route that has no match.
+            .route("/{filename:.*}", web::get().to(index))
     })
     .bind(addr)?
     .run()
@@ -58,8 +51,8 @@ fn get_server_addr() -> String {
 }
 
 async fn index() -> Result<NamedFile, io::Error> {
-    let path: PathBuf = "../app/build/index.html".parse().unwrap();
-    Ok(NamedFile::open("../app/build/index.html")?)
-
-    // format!("Hello")
+    let mut path = std::env::current_dir().unwrap();
+    let index_path: PathBuf = ["app", "build", "index.html"].iter().collect();
+    path.push(index_path);
+    Ok(NamedFile::open(path)?)
 }
