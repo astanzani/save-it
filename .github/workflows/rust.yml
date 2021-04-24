@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      MONGO_TEST_URI: mongodb+srv://test:zdZR40P5MinhHEw5@cluster0.oeorv.mongodb.net
+      MONGO_TEST_URI: ${{ secrets.MONGO_TEST_URI }}
 
     steps:
       - uses: actions/checkout@v2
