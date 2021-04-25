@@ -1,5 +1,5 @@
 use actix_files::NamedFile;
-use actix_web::{web, App, HttpServer};
+use actix_web::{web, App, HttpRequest, HttpServer};
 use std::{env, io, path::PathBuf, sync::Mutex};
 
 use crate::controllers;
@@ -50,7 +50,23 @@ fn get_server_addr() -> String {
     addr
 }
 
-async fn index() -> Result<NamedFile, io::Error> {
+async fn index(req: HttpRequest) -> Result<NamedFile, io::Error> {
+    let file_path: PathBuf = req.match_info().query("filename").parse().unwrap();
+
+    if file_path.starts_with("favicon.ico") == true {
+        let mut path = std::env::current_dir().unwrap();
+        let favicon_path: PathBuf = ["app", "build", "favicon.ico"].iter().collect();
+        path.push(favicon_path);
+        return Ok(NamedFile::open(path)?);
+    }
+
+    if file_path.starts_with("manifest.json") == true {
+        let mut path = std::env::current_dir().unwrap();
+        let manifest_path: PathBuf = ["app", "build", "manifest.json"].iter().collect();
+        path.push(manifest_path);
+        return Ok(NamedFile::open(path)?);
+    }
+
     let mut path = std::env::current_dir().unwrap();
     let index_path: PathBuf = ["app", "build", "index.html"].iter().collect();
     path.push(index_path);
