@@ -13,6 +13,7 @@ jobs:
 
     env:
       MONGO_TEST_URI: ${{ secrets.MONGO_TEST_URI }}
+      SECRET: ${{ secrets.SECRET }}
 
     steps:
       - uses: actions/checkout@v2

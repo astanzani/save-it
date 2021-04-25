@@ -1,3 +1,4 @@
+use async_trait::async_trait;
 use mongodb::{
     bson::{self, doc, Bson},
     error::Error,
@@ -5,6 +6,13 @@ use mongodb::{
 };
 
 use crate::types::{FindOneResult, RegisterUserRequest, UserDB, UserResponse};
+
+#[async_trait]
+pub trait UserServiceTrait {
+    async fn create(&self, user: RegisterUserRequest) -> Result<String, Error>;
+    async fn get_by_id(&self, id: &str) -> Result<FindOneResult<UserResponse>, Error>;
+    async fn get_by_email(&self, email: &str) -> Result<FindOneResult<UserDB>, Error>;
+}
 
 pub struct UserService {
     collection: Collection,
@@ -14,8 +22,11 @@ impl UserService {
     pub fn new(collection: Collection) -> UserService {
         UserService { collection }
     }
+}
 
-    pub async fn create(&self, user: RegisterUserRequest) -> Result<String, Error> {
+#[async_trait]
+impl UserServiceTrait for UserService {
+    async fn create(&self, user: RegisterUserRequest) -> Result<String, Error> {
         let user_serialized = bson::to_bson(&user)?;
         let user_doc = user_serialized.as_document().unwrap();
 
@@ -31,7 +42,7 @@ impl UserService {
         Ok(String::from(inserted_id))
     }
 
-    pub async fn get_by_id(&self, id: &str) -> Result<FindOneResult<UserResponse>, Error> {
+    async fn get_by_id(&self, id: &str) -> Result<FindOneResult<UserResponse>, Error> {
         let object_id = bson::oid::ObjectId::with_string(id).unwrap();
 
         let result = self
@@ -55,7 +66,7 @@ impl UserService {
         }
     }
 
-    pub async fn get_by_email(&self, email: &str) -> Result<FindOneResult<UserDB>, Error> {
+    async fn get_by_email(&self, email: &str) -> Result<FindOneResult<UserDB>, Error> {
         let result = self
             .collection
             .find_one(doc! { "email": email }, None)

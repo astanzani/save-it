@@ -7,6 +7,9 @@
   },
   "scripts": {
     "build": "yarn --cwd app install && yarn --cwd app build",
-    "api:test": "(for /F \"tokens=*\" %i in (api/.env) do set %i) && cargo test --manifest-path api/Cargo.toml"
+    "api:test": "(for /F \"tokens=*\" %i in (api/.env) do set %i) && cargo test --manifest-path api/Cargo.toml",
+    "api:start": "(for /F \"tokens=*\" %i in (api/.env) do set %i) &&cargo run --manifest-path api/Cargo.toml",
+    "app:start": "yarn --cwd app start",
+    "app:start-local-api": "yarn --cwd app start-local-api"
   }
 }

@@ -20,7 +20,6 @@ impl FromRequest for AuthorizedUser {
 
         match token {
             Some(token) => {
-                println!("TOKEN: : {}", &token);
                 let authorized_user = parse_jwt(&token);
                 match authorized_user {
                     Ok(authorized_user) => ok(authorized_user),
@@ -38,20 +37,17 @@ impl FromRequest for AuthorizedUser {
 
 fn get_jwt_from_req(req: &HttpRequest) -> Option<String> {
     // Tries to get jwt from header
-    // TODO: Maybe remove ? (may be needed for chrome ext)
     let header_token = req.headers().get("authorization");
 
     if let Some(t) = header_token {
-        println!("HEADER: {:?}", t);
         let t = t.to_str().unwrap();
         return Some(String::from(t));
     }
 
     // Tries to get jwt from cookies
-    let cookie_token: Option<Cookie> = req.cookie("auth");
+    let cookie_token: Option<Cookie> = req.cookie("authorization");
 
     if let Some(t) = cookie_token {
-        println!("COOKIE: {:?}", t);
         let t = t.value().to_string();
         return Some(t);
     }

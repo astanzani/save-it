@@ -4,13 +4,13 @@ use std::{env, io, path::PathBuf, sync::Mutex};
 
 use crate::controllers;
 use crate::loaders;
-use crate::services::user::UserService;
+use crate::services::user::{UserService, UserServiceTrait};
 
 const DEFAULT_PORT: &str = "8080";
 const USERS_COLLECTION: &str = "Users";
 
 pub struct ServicesContainer {
-    pub user_service: Mutex<UserService>,
+    pub user_service: Mutex<Box<dyn UserServiceTrait>>,
 }
 
 pub struct AppState {
@@ -28,7 +28,7 @@ pub async fn start() -> io::Result<()> {
         let static_path: PathBuf = ["app", "build", "static"].iter().collect();
         path.push(static_path);
         let services_container = ServicesContainer {
-            user_service: Mutex::new(UserService::new(users_collection.clone())),
+            user_service: Mutex::new(Box::new(UserService::new(users_collection.clone()))),
         };
         App::new()
             .data(AppState { services_container })

@@ -1,5 +1,4 @@
 import { NewUserInfo, User } from 'types';
-import { setStorageItem, deleteStorageItem } from 'utils';
 import fetch from './fetch';
 import { HTTPMethod } from './types';
 
@@ -19,13 +18,7 @@ export async function login(email: string, password: string) {
     email,
     password,
   };
-  const response = await fetch(url, HTTPMethod.POST, payload, false);
-
-  if (response.ok) {
-    const authToken = response.headers.get('x-auth-token');
-    setStorageItem('x-auth-token', authToken);
-    return;
-  }
+  const response = await fetch(url, HTTPMethod.POST, payload);
 
   if (response.status === 401) {
     throw new Error('Wrong Email or Password');
@@ -33,10 +26,11 @@ export async function login(email: string, password: string) {
 }
 
 export async function logout() {
-  deleteStorageItem('x-auth-token');
+  const url = BASE_URL + 'logout';
+  await fetch(url, HTTPMethod.POST);
 }
 
 export async function register(userInfo: NewUserInfo) {
   const url = BASE_URL + 'register';
-  return fetch(url, HTTPMethod.POST, userInfo, false);
+  return fetch(url, HTTPMethod.POST, userInfo);
 }

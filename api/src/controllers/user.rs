@@ -1,5 +1,5 @@
 use actix_web::{
-    cookie::{CookieBuilder, SameSite},
+    cookie::{Cookie, CookieBuilder, SameSite},
     web, HttpResponse, Responder,
 };
 use bcrypt;
@@ -14,18 +14,23 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(web::resource("/users/register").route(web::post().to(register_user)));
     cfg.service(web::resource("/users/login").route(web::post().to(login_user)));
     cfg.service(web::resource("/users/current").route(web::get().to(get_current_user)));
+    cfg.service(web::resource("/users/logout").route(web::post().to(logout)));
 }
 
 async fn register_user(
     data: web::Data<AppState>,
     user: web::Json<RegisterUserRequest>,
-) -> impl Responder {
+) -> HttpResponse {
     let on_success = |inserted_id: &str| {
         let token = generate_jwt(inserted_id);
         match token {
-            Ok(token) => HttpResponse::Created()
-                .header("x-auth-token", token)
-                .finish(),
+            Ok(token) => {
+                let auth_cookie = build_auth_cookie(&token);
+                HttpResponse::Created()
+                    .header("x-auth-token", token.clone())
+                    .cookie(auth_cookie)
+                    .finish()
+            }
             Err(_) => HttpResponse::InternalServerError().finish(),
         }
     };
@@ -63,15 +68,9 @@ async fn login_user(
                 let token = generate_jwt(id);
                 match token {
                     Ok(token) => {
-                        let auth_cookie = CookieBuilder::new("auth", token.clone())
-                            .http_only(true)
-                            .secure(true)
-                            .same_site(SameSite::Strict)
-                            .max_age(time::Duration::week())
-                            .finish();
-                        // TODO: Remove token header ? (maybe needed for chrome ext)
+                        let auth_cookie = build_auth_cookie(&token);
                         HttpResponse::Ok()
-                            .header("x-auth-token", token)
+                            .header("x-auth-token", token.clone())
                             .cookie(auth_cookie)
                             .finish()
                     }
@@ -105,5 +104,96 @@ async fn get_current_user(data: web::Data<AppState>, auth_user: AuthorizedUser) 
             FindOneResult::NotFound => HttpResponse::Unauthorized().finish(),
         },
         _ => HttpResponse::InternalServerError().finish(),
+    }
+}
+
+async fn logout() -> impl Responder {
+    let auth_cookie = CookieBuilder::new("authorization", "")
+        .secure(true)
+        .http_only(true)
+        .same_site(SameSite::Strict)
+        .expires(time::OffsetDateTime::now_utc())
+        .path("/")
+        .finish();
+    HttpResponse::NoContent().cookie(auth_cookie).finish()
+}
+
+fn build_auth_cookie<'a>(token: &'a str) -> Cookie<'a> {
+    CookieBuilder::new("authorization", token)
+        .http_only(true)
+        .secure(true)
+        .same_site(SameSite::Strict)
+        .max_age(time::Duration::weeks(24))
+        .path("/")
+        .finish()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::server::ServicesContainer;
+    use crate::services::user::UserServiceTrait;
+    use crate::types::{UserDB, UserResponse};
+    use actix_web::{http, web};
+    use async_trait::async_trait;
+    use mongodb::{bson::oid::ObjectId, error::Error};
+    use std::sync::Mutex;
+
+    struct UserServiceMock {}
+
+    #[async_trait]
+    impl UserServiceTrait for UserServiceMock {
+        async fn create(&self, _user: RegisterUserRequest) -> Result<String, Error> {
+            Ok(String::from("inserted-id"))
+        }
+
+        async fn get_by_id(&self, _id: &str) -> Result<FindOneResult<UserResponse>, Error> {
+            Ok(FindOneResult::Found(UserResponse {
+                id: String::from("id"),
+                email: String::from("email"),
+                display_name: String::from("Display Name"),
+                first_name: String::from("First Name"),
+                last_name: String::from("Last Name"),
+            }))
+        }
+
+        async fn get_by_email(&self, _email: &str) -> Result<FindOneResult<UserDB>, Error> {
+            Ok(FindOneResult::Found(UserDB {
+                id: ObjectId::new(),
+                email: String::from("email"),
+                display_name: String::from("Display Name"),
+                first_name: String::from("First Name"),
+                last_name: String::from("Last Name"),
+                password: String::from("password"),
+            }))
+        }
+    }
+
+    #[actix_rt::test]
+    async fn registers_new_user() {
+        let services_container = ServicesContainer {
+            user_service: Mutex::new(Box::new(UserServiceMock {})),
+        };
+        let app_state = AppState { services_container };
+
+        let data = web::Data::new(app_state);
+        let user = RegisterUserRequest {
+            first_name: String::from("Req"),
+            last_name: String::from("Req"),
+            display_name: String::from("Req"),
+            email: String::from("req_email"),
+            password: String::from("password"),
+        };
+
+        let json = web::Json(user);
+
+        let response = register_user(data, json).await;
+
+        let auth_cookie = response.cookies().find(|c| c.name() == "authorization");
+        let auth_header = response.headers().get("x-auth-token");
+
+        assert_eq!(response.status(), http::StatusCode::CREATED);
+        assert_eq!(auth_cookie.is_some(), true);
+        assert_eq!(auth_header.is_some(), true);
     }
 }
