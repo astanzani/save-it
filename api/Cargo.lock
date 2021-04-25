@@ -321,9 +321,9 @@ dependencies = [
 
 [[package]]
 name = "async-trait"
-version = "0.1.48"
+version = "0.1.50"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "36ea56748e10732c49404c153638a15ec3d6211ec5ff35d9bb20e13b93576adf"
+checksum = "0b98e84bbb4cbcdd97da190ba0c58a1bb0de2c1fdf67d159e192ed766aeca722"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1872,6 +1872,7 @@ dependencies = [
  "actix-rt",
  "actix-service",
  "actix-web",
+ "async-trait",
  "bcrypt",
  "dotenv",
  "futures",
@@ -1880,6 +1881,7 @@ dependencies = [
  "mongodb",
  "serde",
  "serde_json",
+ "serial_test",
  "sha2 0.9.3",
  "time 0.2.26",
 ]
@@ -1986,6 +1988,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e48b35457e9d855d3dc05ef32a73e0df1e2c0fd72c38796a4ee909160c8eeec2"
 dependencies = [
  "darling",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "serial_test"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e0bccbcf40c8938196944a3da0e133e031a33f4d6b72db3bda3cc556e361905d"
+dependencies = [
+ "lazy_static",
+ "parking_lot",
+ "serial_test_derive",
+]
+
+[[package]]
+name = "serial_test_derive"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2acd6defeddb41eb60bb468f8825d0cfd0c2a76bc03bfd235b6a1dc4f6a1ad5"
+dependencies = [
  "proc-macro2",
  "quote",
  "syn",

@@ -1,8 +1,7 @@
-// use actix_rt;
 use mongodb::{
     bson::{self, doc, Bson},
     error::Error,
-    Collection, Database,
+    Collection,
 };
 
 use crate::types::{FindOneResult, RegisterUserRequest, UserDB, UserResponse};
@@ -76,6 +75,8 @@ impl UserService {
 mod tests {
     use super::*;
     use crate::types::RegisterUserRequest;
+    use mongodb::Database;
+    use serial_test::serial;
     use std::env;
 
     async fn setup() -> Database {
@@ -100,6 +101,7 @@ mod tests {
     }
 
     #[actix_rt::test]
+    #[serial]
     async fn creates_new_user() {
         let db = setup().await;
         let collection = db.collection("Users");
@@ -116,6 +118,7 @@ mod tests {
     }
 
     #[actix_rt::test]
+    #[serial]
     async fn gets_user_by_id() {
         let db = setup().await;
         let collection = db.collection("Users");
@@ -144,6 +147,7 @@ mod tests {
     }
 
     #[actix_rt::test]
+    #[serial]
     async fn gets_user_by_email() {
         let db = setup().await;
         let collection = db.collection("Users");
