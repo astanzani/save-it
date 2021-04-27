@@ -53,6 +53,7 @@ fn get_server_addr() -> String {
 async fn index(req: HttpRequest) -> Result<NamedFile, io::Error> {
     let file_path: PathBuf = req.match_info().query("filename").parse().unwrap();
 
+    // This kinda sucks, but it is what it is
     if file_path.starts_with("favicon.ico") == true {
         let mut path = std::env::current_dir().unwrap();
         let favicon_path: PathBuf = ["app", "build", "favicon.ico"].iter().collect();

@@ -85,7 +85,13 @@ async fn login_user(
 
     match result {
         Ok(result) => match result {
-            FindOneResult::Found(user) => on_user_found(&user.id.to_string(), &user.password),
+            FindOneResult::Found(user) => {
+                let hashed_password = user_service
+                    .get_hashed_password(&user.id.to_string())
+                    .await
+                    .unwrap();
+                on_user_found(&user.id.to_string(), &hashed_password)
+            }
             FindOneResult::NotFound => HttpResponse::Unauthorized().finish(),
         },
         _ => HttpResponse::InternalServerError().finish(),
@@ -133,10 +139,10 @@ mod tests {
     use super::*;
     use crate::server::ServicesContainer;
     use crate::services::user::UserServiceTrait;
-    use crate::types::{UserDB, UserResponse};
+    use crate::types::UserResponse;
     use actix_web::{http, web};
     use async_trait::async_trait;
-    use mongodb::{bson::oid::ObjectId, error::Error};
+    use mongodb::error::Error;
     use std::sync::Mutex;
 
     struct UserServiceMock {}
@@ -157,15 +163,18 @@ mod tests {
             }))
         }
 
-        async fn get_by_email(&self, _email: &str) -> Result<FindOneResult<UserDB>, Error> {
-            Ok(FindOneResult::Found(UserDB {
-                id: ObjectId::new(),
+        async fn get_by_email(&self, _email: &str) -> Result<FindOneResult<UserResponse>, Error> {
+            Ok(FindOneResult::Found(UserResponse {
+                id: String::from("id"),
                 email: String::from("email"),
                 display_name: String::from("Display Name"),
                 first_name: String::from("First Name"),
                 last_name: String::from("Last Name"),
-                password: String::from("password"),
             }))
+        }
+
+        async fn get_hashed_password(&self, _id: &str) -> Result<String, Error> {
+            Ok(String::from("password"))
         }
     }
 

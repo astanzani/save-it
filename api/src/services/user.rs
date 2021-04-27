@@ -11,7 +11,8 @@ use crate::types::{FindOneResult, RegisterUserRequest, UserDB, UserResponse};
 pub trait UserServiceTrait {
     async fn create(&self, user: RegisterUserRequest) -> Result<String, Error>;
     async fn get_by_id(&self, id: &str) -> Result<FindOneResult<UserResponse>, Error>;
-    async fn get_by_email(&self, email: &str) -> Result<FindOneResult<UserDB>, Error>;
+    async fn get_by_email(&self, email: &str) -> Result<FindOneResult<UserResponse>, Error>;
+    async fn get_hashed_password(&self, id: &str) -> Result<String, Error>;
 }
 
 pub struct UserService {
@@ -66,7 +67,7 @@ impl UserServiceTrait for UserService {
         }
     }
 
-    async fn get_by_email(&self, email: &str) -> Result<FindOneResult<UserDB>, Error> {
+    async fn get_by_email(&self, email: &str) -> Result<FindOneResult<UserResponse>, Error> {
         let result = self
             .collection
             .find_one(doc! { "email": email }, None)
@@ -75,10 +76,30 @@ impl UserServiceTrait for UserService {
         match result {
             Some(document) => {
                 let user: UserDB = bson::from_bson(Bson::Document(document)).unwrap();
+                let user = UserResponse {
+                    id: user.id.to_string(),
+                    email: user.email,
+                    first_name: user.first_name,
+                    last_name: user.last_name,
+                    display_name: user.display_name,
+                };
                 Ok(FindOneResult::Found(user))
             }
             None => Ok(FindOneResult::NotFound),
         }
+    }
+
+    async fn get_hashed_password(&self, id: &str) -> Result<String, Error> {
+        let object_id = bson::oid::ObjectId::with_string(id).unwrap();
+
+        let result = self
+            .collection
+            .find_one(doc! { "_id": object_id }, None)
+            .await?;
+
+        let user_doc = result.unwrap();
+        let user: UserDB = bson::from_bson(Bson::Document(user_doc)).unwrap();
+        Ok(user.password)
     }
 }
 
@@ -182,5 +203,30 @@ mod tests {
         } else {
             panic!("Did not find user");
         }
+    }
+
+    #[actix_rt::test]
+    #[serial]
+    async fn gets_user_hashed_password() {
+        let db = setup().await;
+        let collection = db.collection("Users");
+
+        let user = get_mock_user();
+
+        let doc = bson::to_bson(&user)
+            .unwrap()
+            .as_document()
+            .unwrap()
+            .to_owned();
+
+        let inserted = collection.insert_one(doc, None).await.unwrap().inserted_id;
+        let id: bson::oid::ObjectId = bson::from_bson(inserted).unwrap();
+        let id = id.to_string();
+
+        let service = UserService::new(collection);
+
+        let hashed_password = service.get_hashed_password(&id).await.unwrap();
+
+        assert_eq!(hashed_password, "password");
     }
 }
