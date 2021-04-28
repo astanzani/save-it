@@ -54,7 +54,7 @@ async fn register_user(
 async fn login_user(
     data: web::Data<AppState>,
     login_info: web::Json<LoginRequest>,
-) -> impl Responder {
+) -> HttpResponse {
     let user_service = &data.services_container.user_service.lock().unwrap();
     let login_info = login_info.into_inner();
     let email = login_info.email;
@@ -98,7 +98,7 @@ async fn login_user(
     }
 }
 
-async fn get_current_user(data: web::Data<AppState>, auth_user: AuthorizedUser) -> impl Responder {
+async fn get_current_user(data: web::Data<AppState>, auth_user: AuthorizedUser) -> HttpResponse {
     let on_user_found = |user| HttpResponse::Ok().json(user);
 
     let user_service = &data.services_container.user_service.lock().unwrap();
@@ -113,7 +113,7 @@ async fn get_current_user(data: web::Data<AppState>, auth_user: AuthorizedUser) 
     }
 }
 
-async fn logout() -> impl Responder {
+async fn logout() -> HttpResponse {
     let auth_cookie = CookieBuilder::new("authorization", "")
         .secure(true)
         .http_only(true)
@@ -140,9 +140,10 @@ mod tests {
     use crate::server::ServicesContainer;
     use crate::services::user::UserServiceTrait;
     use crate::types::UserResponse;
-    use actix_web::{http, web};
+    use actix_web::{body::Body, http, web};
     use async_trait::async_trait;
     use mongodb::error::Error;
+    use serde_json::json;
     use std::sync::Mutex;
 
     struct UserServiceMock {}
@@ -174,7 +175,10 @@ mod tests {
         }
 
         async fn get_hashed_password(&self, _id: &str) -> Result<String, Error> {
-            Ok(String::from("password"))
+            // Hash of 'password'
+            Ok(String::from(
+                "$2y$10$Ojl6IKvw5yu2Zpbq921cNOpb7couXgkI8Q28iyZSFFeGHphdgIhEG",
+            ))
         }
     }
 
@@ -204,5 +208,69 @@ mod tests {
         assert_eq!(response.status(), http::StatusCode::CREATED);
         assert_eq!(auth_cookie.is_some(), true);
         assert_eq!(auth_header.is_some(), true);
+    }
+
+    #[actix_rt::test]
+    async fn logs_user_in() {
+        let services_container = ServicesContainer {
+            user_service: Mutex::new(Box::new(UserServiceMock {})),
+        };
+        let app_state = AppState { services_container };
+
+        let data = web::Data::new(app_state);
+
+        let login_req = LoginRequest {
+            email: String::from("email"),
+            password: String::from("password"),
+        };
+        let json = web::Json(login_req);
+
+        let response = login_user(data, json).await;
+
+        assert_eq!(response.status(), http::StatusCode::OK);
+    }
+
+    #[actix_rt::test]
+    async fn gets_current_user() {
+        let services_container = ServicesContainer {
+            user_service: Mutex::new(Box::new(UserServiceMock {})),
+        };
+        let app_state = AppState { services_container };
+
+        let data = web::Data::new(app_state);
+        let auth_user = AuthorizedUser {
+            id: String::from("id"),
+        };
+
+        let mut response = get_current_user(data, auth_user).await;
+        let json = response.take_body();
+        let json = json.as_ref().unwrap();
+
+        assert_eq!(response.status(), http::StatusCode::OK);
+        assert_eq!(
+            &Body::from(json!({
+                "id":"id",
+                "firstName": "First Name",
+                "lastName": "Last Name",
+                "displayName": "Display Name",
+                "email": "email"
+            })),
+            json
+        );
+    }
+
+    #[actix_rt::test]
+    async fn logs_user_out() {
+        let response = logout().await;
+        let auth_cookie = response
+            .cookies()
+            .find(|c| c.name() == "authorization")
+            .unwrap();
+        let expires_at = auth_cookie.expires().unwrap();
+        let now = time::OffsetDateTime::now_utc();
+        let expired = expires_at < now;
+
+        assert_eq!(response.status(), http::StatusCode::NO_CONTENT);
+        assert!(expired, true);
     }
 }
