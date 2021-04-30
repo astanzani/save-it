@@ -8,25 +8,25 @@ use mongodb::{
 use crate::types::{FindOneResult, RegisterUserRequest, UserDB, UserResponse};
 
 #[async_trait]
-pub trait UserServiceTrait {
+pub trait UsersServiceTrait {
     async fn create(&self, user: RegisterUserRequest) -> Result<String, Error>;
     async fn get_by_id(&self, id: &str) -> Result<FindOneResult<UserResponse>, Error>;
     async fn get_by_email(&self, email: &str) -> Result<FindOneResult<UserResponse>, Error>;
     async fn get_hashed_password(&self, id: &str) -> Result<String, Error>;
 }
 
-pub struct UserService {
+pub struct UsersService {
     collection: Collection,
 }
 
-impl UserService {
-    pub fn new(collection: Collection) -> UserService {
-        UserService { collection }
+impl UsersService {
+    pub fn new(collection: Collection) -> UsersService {
+        UsersService { collection }
     }
 }
 
 #[async_trait]
-impl UserServiceTrait for UserService {
+impl UsersServiceTrait for UsersService {
     async fn create(&self, user: RegisterUserRequest) -> Result<String, Error> {
         let user_serialized = bson::to_bson(&user)?;
         let user_doc = user_serialized.as_document().unwrap();
@@ -138,7 +138,7 @@ mod tests {
         let db = setup().await;
         let collection = db.collection("Users");
 
-        let service = UserService::new(collection);
+        let service = UsersService::new(collection);
 
         let new_user = get_mock_user();
 
@@ -167,7 +167,7 @@ mod tests {
         let id: bson::oid::ObjectId = bson::from_bson(inserted).unwrap();
         let id = id.to_string();
 
-        let service = UserService::new(collection);
+        let service = UsersService::new(collection);
 
         let found_user = service.get_by_id(&id).await.unwrap();
 
@@ -194,7 +194,7 @@ mod tests {
 
         collection.insert_one(doc, None).await.unwrap().inserted_id;
 
-        let service = UserService::new(collection);
+        let service = UsersService::new(collection);
 
         let found_user = service.get_by_email(&user.email).await.unwrap();
 
@@ -223,7 +223,7 @@ mod tests {
         let id: bson::oid::ObjectId = bson::from_bson(inserted).unwrap();
         let id = id.to_string();
 
-        let service = UserService::new(collection);
+        let service = UsersService::new(collection);
 
         let hashed_password = service.get_hashed_password(&id).await.unwrap();
 

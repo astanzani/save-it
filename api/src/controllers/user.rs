@@ -138,7 +138,7 @@ fn build_auth_cookie<'a>(token: &'a str) -> Cookie<'a> {
 mod tests {
     use super::*;
     use crate::server::ServicesContainer;
-    use crate::services::user::UserServiceTrait;
+    use crate::services::users::UsersServiceTrait;
     use crate::types::UserResponse;
     use actix_web::{body::Body, http, web};
     use async_trait::async_trait;
@@ -149,7 +149,7 @@ mod tests {
     struct UserServiceMock {}
 
     #[async_trait]
-    impl UserServiceTrait for UserServiceMock {
+    impl UsersServiceTrait for UserServiceMock {
         async fn create(&self, _user: RegisterUserRequest) -> Result<String, Error> {
             Ok(String::from("inserted-id"))
         }
