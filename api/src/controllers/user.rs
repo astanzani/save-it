@@ -1,6 +1,6 @@
 use actix_web::{
     cookie::{Cookie, CookieBuilder, SameSite},
-    web, HttpResponse, Responder,
+    web, HttpResponse,
 };
 use bcrypt;
 use mongodb::error::ErrorKind;

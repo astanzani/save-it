@@ -54,3 +54,54 @@ fn get_jwt_from_req(req: &HttpRequest) -> Option<String> {
 
     None
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::helpers::jwt::generate_jwt;
+    use actix_web::dev::Payload;
+    use actix_web::test::TestRequest;
+    use actix_web::{cookie::CookieBuilder, test};
+
+    #[actix_rt::test]
+    async fn parses_user_data_from_cookie() {
+        let jwt = generate_jwt("user-id").unwrap();
+        let cookie = CookieBuilder::new("authorization", jwt).finish();
+        let request = test::TestRequest::default();
+        let request = request.cookie(cookie).to_http_request();
+
+        let mut payload = Payload::None;
+
+        let auth_user = AuthorizedUser::from_request(&request, &mut payload)
+            .await
+            .expect("Could not get auth user from request");
+
+        assert_eq!(auth_user.id, "user-id");
+    }
+
+    #[actix_rt::test]
+    async fn parses_user_data_from_header() {
+        let jwt = generate_jwt("user-id").unwrap();
+        let request = TestRequest::with_header("authorization", jwt).to_http_request();
+
+        let mut payload = Payload::None;
+
+        let auth_user = AuthorizedUser::from_request(&request, &mut payload)
+            .await
+            .expect("Could not get auth user from request");
+
+        assert_eq!(auth_user.id, "user-id");
+    }
+
+    #[actix_rt::test]
+    async fn returns_error_if_cannot_parse_jwt() {
+        let jwt = "wrong-jwt";
+        let request = TestRequest::with_header("authorization", jwt).to_http_request();
+
+        let mut payload = Payload::None;
+
+        let result = AuthorizedUser::from_request(&request, &mut payload).await;
+
+        assert_eq!(result.is_err(), true);
+    }
+}
