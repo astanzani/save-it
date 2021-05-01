@@ -4,13 +4,18 @@ use std::{env, io, path::PathBuf, sync::Mutex};
 
 use crate::controllers;
 use crate::loaders;
-use crate::services::users::{UsersService, UsersServiceTrait};
+use crate::services::{
+    bookmarks::{BookmarksService, BookmarksServiceTrait},
+    users::{UsersService, UsersServiceTrait},
+};
 
 const DEFAULT_PORT: &str = "8080";
 const USERS_COLLECTION: &str = "Users";
+const BOOKMARKS_COLLECTION: &str = "Bookmarks";
 
 pub struct ServicesContainer {
     pub user_service: Mutex<Box<dyn UsersServiceTrait>>,
+    pub bookmarks_service: Mutex<Box<dyn BookmarksServiceTrait>>,
 }
 
 pub struct AppState {
@@ -22,6 +27,7 @@ pub async fn start() -> io::Result<()> {
 
     let db = loaders::mongo::load().await;
     let users_collection = db.collection(USERS_COLLECTION);
+    let bookmarks_collection = db.collection(BOOKMARKS_COLLECTION);
 
     HttpServer::new(move || {
         let mut path = std::env::current_dir().unwrap();
@@ -29,10 +35,17 @@ pub async fn start() -> io::Result<()> {
         path.push(static_path);
         let services_container = ServicesContainer {
             user_service: Mutex::new(Box::new(UsersService::new(users_collection.clone()))),
+            bookmarks_service: Mutex::new(Box::new(BookmarksService::new(
+                bookmarks_collection.clone(),
+            ))),
         };
         App::new()
             .data(AppState { services_container })
-            .service(web::scope("api/v1").configure(controllers::user::config))
+            .service(
+                web::scope("api/v1")
+                    .configure(controllers::user::config)
+                    .configure(controllers::bookmarks::config),
+            )
             .service(actix_files::Files::new("/static", path))
             // Routes are defined client side by React, so send index.html for any route that has no match.
             .route("/{filename:.*}", web::get().to(index))

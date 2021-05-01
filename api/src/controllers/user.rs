@@ -137,56 +137,13 @@ fn build_auth_cookie<'a>(token: &'a str) -> Cookie<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::server::ServicesContainer;
-    use crate::services::users::UsersServiceTrait;
-    use crate::types::UserResponse;
+    use crate::helpers::mocks;
     use actix_web::{body::Body, http, web};
-    use async_trait::async_trait;
-    use mongodb::error::Error;
     use serde_json::json;
-    use std::sync::Mutex;
-
-    struct UserServiceMock {}
-
-    #[async_trait]
-    impl UsersServiceTrait for UserServiceMock {
-        async fn create(&self, _user: RegisterUserRequest) -> Result<String, Error> {
-            Ok(String::from("inserted-id"))
-        }
-
-        async fn get_by_id(&self, _id: &str) -> Result<FindOneResult<UserResponse>, Error> {
-            Ok(FindOneResult::Found(UserResponse {
-                id: String::from("id"),
-                email: String::from("email"),
-                display_name: String::from("Display Name"),
-                first_name: String::from("First Name"),
-                last_name: String::from("Last Name"),
-            }))
-        }
-
-        async fn get_by_email(&self, _email: &str) -> Result<FindOneResult<UserResponse>, Error> {
-            Ok(FindOneResult::Found(UserResponse {
-                id: String::from("id"),
-                email: String::from("email"),
-                display_name: String::from("Display Name"),
-                first_name: String::from("First Name"),
-                last_name: String::from("Last Name"),
-            }))
-        }
-
-        async fn get_hashed_password(&self, _id: &str) -> Result<String, Error> {
-            // Hash of 'password'
-            Ok(String::from(
-                "$2y$10$Ojl6IKvw5yu2Zpbq921cNOpb7couXgkI8Q28iyZSFFeGHphdgIhEG",
-            ))
-        }
-    }
 
     #[actix_rt::test]
     async fn registers_new_user() {
-        let services_container = ServicesContainer {
-            user_service: Mutex::new(Box::new(UserServiceMock {})),
-        };
+        let services_container = mocks::get_services_mock();
         let app_state = AppState { services_container };
 
         let data = web::Data::new(app_state);
@@ -212,9 +169,8 @@ mod tests {
 
     #[actix_rt::test]
     async fn logs_user_in() {
-        let services_container = ServicesContainer {
-            user_service: Mutex::new(Box::new(UserServiceMock {})),
-        };
+        let services_container = mocks::get_services_mock();
+
         let app_state = AppState { services_container };
 
         let data = web::Data::new(app_state);
@@ -232,9 +188,8 @@ mod tests {
 
     #[actix_rt::test]
     async fn gets_current_user() {
-        let services_container = ServicesContainer {
-            user_service: Mutex::new(Box::new(UserServiceMock {})),
-        };
+        let services_container = mocks::get_services_mock();
+
         let app_state = AppState { services_container };
 
         let data = web::Data::new(app_state);

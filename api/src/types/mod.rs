@@ -43,3 +43,33 @@ pub enum FindOneResult<T> {
     Found(T),
     NotFound,
 }
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BookmarkRequest {
+    pub url: String,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BookmarkRequestWithCreatorId {
+    pub url: String,
+    pub creator_id: String,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BookmarkResponse {
+    pub id: String,
+    pub url: String,
+    pub creator_id: String,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BookmarkDB {
+    #[serde(rename = "_id")]
+    pub id: ObjectId,
+    pub url: String,
+    pub creator_id: String,
+}
