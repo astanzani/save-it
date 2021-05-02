@@ -46,3 +46,5 @@ async fn get_bookmarks(data: web::Data<AppState>, user: AuthorizedUser) -> HttpR
 
     HttpResponse::Ok().json(bookmarks)
 }
+
+//TODO: Tests
