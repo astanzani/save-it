@@ -1,9 +1,12 @@
+use actix::Addr;
 use actix_web::{web, HttpResponse};
 use mongodb::error::ErrorKind;
 
 use crate::server::AppState;
 use crate::types::BookmarkRequest;
 use crate::{middlewares::auth::AuthorizedUser, types::BookmarkRequestWithCreatorId};
+
+use super::feed::{Event, WsServer};
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -17,6 +20,7 @@ async fn add_bookmark(
     data: web::Data<AppState>,
     bookmark: web::Json<BookmarkRequest>,
     user: AuthorizedUser,
+    srv: web::Data<Addr<WsServer>>,
 ) -> HttpResponse {
     let bookmark = bookmark.into_inner();
     let bookmark_with_creator_id = BookmarkRequestWithCreatorId {
@@ -28,7 +32,11 @@ async fn add_bookmark(
     let insert_result = bookmarks_service.create(bookmark_with_creator_id).await;
 
     match insert_result {
-        Ok(_inserted_id) => HttpResponse::Created().finish(),
+        Ok(inserted_id) => {
+            println!("OK: {}", &inserted_id);
+            let _ = srv.do_send(Event { id: inserted_id });
+            HttpResponse::Created().finish()
+        }
         Err(err) => match err.kind.as_ref() {
             ErrorKind::WriteError(_) => HttpResponse::BadRequest().finish(),
             _ => HttpResponse::InternalServerError().finish(),

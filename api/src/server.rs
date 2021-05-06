@@ -1,3 +1,4 @@
+use actix::Actor;
 use actix_files::NamedFile;
 use actix_web::{web, App, HttpRequest, HttpServer};
 use std::{env, io, path::PathBuf, sync::Mutex};
@@ -29,6 +30,8 @@ pub async fn start() -> io::Result<()> {
     let users_collection = db.collection(USERS_COLLECTION);
     let bookmarks_collection = db.collection(BOOKMARKS_COLLECTION);
 
+    let ws_server = controllers::feed::WsServer::new().start();
+
     HttpServer::new(move || {
         let mut path = std::env::current_dir().unwrap();
         let static_path: PathBuf = ["app", "build", "static"].iter().collect();
@@ -39,17 +42,21 @@ pub async fn start() -> io::Result<()> {
                 bookmarks_collection.clone(),
             ))),
         };
+
         App::new()
             .data(AppState { services_container })
+            .data(ws_server.clone())
             .service(
                 web::scope("api/v1")
                     .configure(controllers::user::config)
-                    .configure(controllers::bookmarks::config),
+                    .configure(controllers::bookmarks::config)
+                    .configure(controllers::feed::config),
             )
             .service(actix_files::Files::new("/static", path))
             // Routes are defined client side by React, so send index.html for any route that has no match.
             .route("/{filename:.*}", web::get().to(index))
     })
+    // .workers(1)
     .bind(addr)?
     .run()
     .await
