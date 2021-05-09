@@ -11,10 +11,11 @@ use rand::{self, rngs::ThreadRng, Rng};
 use serde::{Deserialize, Serialize};
 use serde_json;
 
-/// How often heartbeat pings are sent
-const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(60);
+/// How often heartbeat pings are sent, needs to be lower than 55 seconds,
+/// otherwise heroku will close the connection: https://devcenter.heroku.com/articles/http-routing#timeouts
+const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(20);
 /// How long before lack of client response causes a timeout
-const CLIENT_TIMEOUT: Duration = Duration::from_secs(120);
+const CLIENT_TIMEOUT: Duration = Duration::from_secs(40);
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(web::resource("/feed").route(web::get().to(start_feed)));
@@ -235,7 +236,6 @@ impl StreamHandler<Result<ws::Message, ws::ProtocolError>> for WsSession {
             Ok(msg) => msg,
         };
 
-        // println!("WEBSOCKET MESSAGE: {:?}", msg);
         match msg {
             ws::Message::Ping(msg) => {
                 self.hb = Instant::now();
