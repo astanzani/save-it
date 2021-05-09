@@ -6,7 +6,7 @@ import { startFeed } from 'transport';
 
 export function Home() {
   React.useEffect(() => {
-    // startFeed();
+    startFeed();
   }, []);
 
   const dispatch = useDispatch();

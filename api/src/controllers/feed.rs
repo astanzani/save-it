@@ -3,11 +3,13 @@ use std::{
     time::{Duration, Instant},
 };
 
-use crate::middlewares::auth::AuthorizedUser;
+use crate::{middlewares::auth::AuthorizedUser, types::FeedEvent};
 use actix::prelude::*;
 use actix_web::{web, HttpRequest, HttpResponse};
 use actix_web_actors::ws;
 use rand::{self, rngs::ThreadRng, Rng};
+use serde::{Deserialize, Serialize};
+use serde_json;
 
 /// How often heartbeat pings are sent
 const HEARTBEAT_INTERVAL: Duration = Duration::from_secs(60);
@@ -21,12 +23,13 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 fn start_feed(
     req: HttpRequest,
     stream: web::Payload,
-    _authorized_user: AuthorizedUser,
+    authorized_user: AuthorizedUser,
     srv: web::Data<Addr<WsServer>>,
 ) -> HttpResponse {
     ws::start(
         WsSession {
             id: 0,
+            user_id: String::from(authorized_user.id),
             hb: Instant::now(),
             addr: srv.get_ref().clone(),
         },
@@ -38,6 +41,7 @@ fn start_feed(
 
 struct WsSession {
     id: usize,
+    user_id: String,
     hb: Instant,
     addr: Addr<WsServer>,
 }
@@ -52,6 +56,7 @@ impl Actor for WsSession {
         self.addr
             .send(Connect {
                 addr: addr.recipient(),
+                user_id: String::from(&self.user_id),
             })
             .into_actor(self)
             .then(|res, act, ctx| {
@@ -93,6 +98,8 @@ impl WsSession {
     }
 }
 
+// Messages
+
 #[derive(Message)]
 #[rtype(result = "()")]
 pub struct Message(pub String);
@@ -101,6 +108,7 @@ pub struct Message(pub String);
 #[derive(Message)]
 #[rtype(usize)]
 pub struct Connect {
+    pub user_id: String,
     pub addr: Recipient<Message>,
 }
 
@@ -117,8 +125,13 @@ pub struct Event {
     pub id: String,
 }
 
+pub struct Session {
+    user_id: String,
+    addr: Recipient<Message>,
+}
+
 pub struct WsServer {
-    sessions: HashMap<usize, Recipient<Message>>,
+    sessions: HashMap<usize, Session>,
     rng: ThreadRng,
 }
 
@@ -133,13 +146,15 @@ impl Handler<Connect> for WsServer {
     type Result = usize;
 
     fn handle(&mut self, msg: Connect, _: &mut Context<Self>) -> Self::Result {
-        println!("New connection");
-
         let id = self.rng.gen::<usize>();
-        self.sessions.insert(id, msg.addr);
+        let session = Session {
+            user_id: String::from(&msg.user_id),
+            addr: msg.addr,
+        };
+        self.sessions.insert(id, session);
 
         // notify all users in same room
-        self.send_message(&id, "Connected");
+        self.send_message(&msg.user_id, "Connected");
 
         // register session with random id
 
@@ -153,9 +168,14 @@ impl Handler<Disconnect> for WsServer {
     type Result = ();
 
     fn handle(&mut self, msg: Disconnect, _: &mut Context<Self>) {
-        println!("Disconnected");
+        let session = self.sessions.remove(&msg.id);
 
-        let mut rooms: Vec<String> = Vec::new();
+        match session {
+            Some(session) => {
+                let _ = session.addr.do_send(Message("Disconnected".to_owned()));
+            }
+            None => {}
+        }
 
         // remove address
         // if self.sessions.remove(&msg.id).is_some() {
@@ -164,18 +184,20 @@ impl Handler<Disconnect> for WsServer {
     }
 }
 
-impl Handler<Event> for WsServer {
+impl<'a, T> Handler<FeedEvent<T>> for WsServer
+where
+    T: Serialize + Deserialize<'a>,
+{
     type Result = ();
 
-    fn handle(&mut self, msg: Event, ctx: &mut Self::Context) -> Self::Result {
-        println!("Handling event: {}", &msg.id);
-        self.send_message(&0, &msg.id);
+    fn handle(&mut self, msg: FeedEvent<T>, _ctx: &mut Self::Context) -> Self::Result {
+        let json = serde_json::to_string(&msg).unwrap();
+        self.send_message(&msg.user_id, &json);
     }
 }
 
 impl WsServer {
     pub fn new() -> WsServer {
-        println!("NEW SERVER");
         WsServer {
             sessions: HashMap::new(),
             rng: rand::thread_rng(),
@@ -184,12 +206,12 @@ impl WsServer {
 }
 
 impl WsServer {
-    fn send_message(&self, id: &usize, message: &str) {
-        let count = &self.sessions.len();
-        println!("COUNT: {}", count);
-        for (id, rec) in &self.sessions {
-            println!("ID: {}", &id);
-            let _ = rec.do_send(Message(message.to_owned()));
+    // Sends message to all connected clients with same user id.
+    fn send_message(&self, user_id: &str, message: &str) {
+        for (_id, session) in &self.sessions {
+            if session.user_id == user_id {
+                let _ = session.addr.do_send(Message(message.to_owned()));
+            }
         }
     }
 }

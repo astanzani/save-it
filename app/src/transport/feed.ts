@@ -1,29 +1,20 @@
-import fetch from './fetch';
-import { backOff } from './backOff';
-
-const feedUrl = '/api/v1/feed';
-let retryAttempt = 0;
-
 export function startFeed() {
-  run();
-}
+  let path;
 
-export async function maybeRun(ok?: boolean) {
-  if (ok) {
-    retryAttempt = 0;
-    run();
+  if (process.env.NODE_ENV === 'development') {
+    // Proxy not working for websocket.
+    path = 'ws://localhost:8080/api/v1/feed';
   } else {
-    retryAttempt++;
-    await backOff(run, retryAttempt);
+    path = 'wss://save-it-v2/api/v1/feed';
   }
-}
 
-export async function run() {
-  let res: Response | undefined;
+  const ws = new WebSocket(path);
 
-  try {
-    res = await fetch(feedUrl);
-  } finally {
-    maybeRun(res?.ok);
-  }
+  ws.addEventListener('open', (e) => {
+    console.log(e);
+  });
+
+  ws.addEventListener('message', (e) => {
+    console.log(e.data);
+  });
 }

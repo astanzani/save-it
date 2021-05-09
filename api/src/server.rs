@@ -36,6 +36,7 @@ pub async fn start() -> io::Result<()> {
         let mut path = std::env::current_dir().unwrap();
         let static_path: PathBuf = ["app", "build", "static"].iter().collect();
         path.push(static_path);
+        // Server is multithreaded so this will be create many times, maybe init outside HttpServer::new ?
         let services_container = ServicesContainer {
             user_service: Mutex::new(Box::new(UsersService::new(users_collection.clone()))),
             bookmarks_service: Mutex::new(Box::new(BookmarksService::new(

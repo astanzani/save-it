@@ -1,3 +1,4 @@
+use actix::prelude::*;
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
@@ -72,4 +73,13 @@ pub struct BookmarkDB {
     pub id: ObjectId,
     pub url: String,
     pub creator_id: String,
+}
+
+#[derive(Deserialize, Serialize, Message)]
+#[serde(rename_all = "camelCase")]
+#[rtype(result = "()")]
+pub struct FeedEvent<T> {
+    pub kind: String,
+    pub user_id: String,
+    pub data: T,
 }
