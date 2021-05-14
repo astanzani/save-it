@@ -11,6 +11,7 @@ import { Alert } from '@material-ui/lab';
 import { AlternateEmailOutlined, LockOpen } from '@material-ui/icons';
 import { Redirect } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
+import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import { ReactComponent as SignInSVG } from 'assets/sign_in.svg';
 import { Routes } from 'const';
@@ -24,6 +25,7 @@ export function SignIn() {
   const isAuthenticated = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const { t } = useTranslation();
   const classes = useStyles();
 
   const onChangeEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,7 +62,7 @@ export function SignIn() {
         flex="1"
       >
         <Typography variant="h4" component="h1" className={classes.title}>
-          Welcome to Save It!
+          {t('signIn.welcome')}
         </Typography>
         <Typography
           variant="h5"
@@ -68,13 +70,13 @@ export function SignIn() {
           className={classes.title}
           color="textSecondary"
         >
-          Sign in to continue
+          {t('signIn.signInToContinue')}
         </Typography>
         <TextField
           id="email"
           className={classes.formInput}
           variant="outlined"
-          label="Email"
+          label={t('signIn.form.email')}
           type="email"
           onChange={onChangeEmail}
           InputProps={{
@@ -84,13 +86,13 @@ export function SignIn() {
               </InputAdornment>
             ),
           }}
-          placeholder="your_email@email.com"
+          placeholder={t('signIn.form.email')}
         />
         <TextField
           id="password"
           className={classes.formInput}
           variant="outlined"
-          label="Password"
+          label={t('signIn.form.password')}
           type="password"
           onChange={onChangePassword}
           InputProps={{
@@ -100,7 +102,7 @@ export function SignIn() {
               </InputAdornment>
             ),
           }}
-          placeholder="*******"
+          placeholder={t('signIn.form.password')}
         />
         <Button
           variant="contained"
@@ -115,7 +117,7 @@ export function SignIn() {
               className={classes.spinner}
             />
           ) : (
-            'Sign In'
+            t('signIn.form.signIn')
           )}
         </Button>
         <Alert variant="outlined" severity="error" className={alertClassName}>
@@ -123,7 +125,7 @@ export function SignIn() {
         </Alert>
       </Box>
       <Box display="flex" alignItems="center" flex="1">
-        <SignInSVG />
+        <SignInSVG title={''} />
       </Box>
     </Box>
   );

@@ -2,11 +2,14 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { ThemeProvider } from '@material-ui/core';
 import { Provider } from 'react-redux';
-import App from './app/App';
+import App from './pages/App';
 import reportWebVitals from './reportWebVitals';
 import { baseTheme } from './themes';
 import { store } from './store';
+import { init as initI18n } from './i18n';
 import './index.css';
+
+initI18n();
 
 ReactDOM.render(
   <React.StrictMode>
