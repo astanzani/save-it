@@ -1,19 +1,23 @@
-import { Button } from '@material-ui/core';
+import { Box } from '@material-ui/core';
 import React from 'react';
-import { useDispatch } from 'react-redux';
-import { logoutUser } from 'store';
 import { startFeed } from 'transport';
+import Navigation from './Nav';
+import BookmarksList from './BookmarksList';
+import { getAllBookmarks } from 'store/bookmarks';
+import { useDispatch } from 'react-redux';
 
 export function Home() {
-  React.useEffect(() => {
-    startFeed();
-  }, []);
-
   const dispatch = useDispatch();
 
-  const onClickLogout = () => {
-    dispatch(logoutUser());
-  };
+  React.useEffect(() => {
+    startFeed();
+    dispatch(getAllBookmarks());
+  }, [dispatch]);
 
-  return <Button onClick={onClickLogout}>Logout</Button>;
+  return (
+    <Box display="flex" flex="1">
+      <Navigation />
+      <BookmarksList />
+    </Box>
+  );
 }

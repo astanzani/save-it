@@ -1,7 +1,11 @@
 import { useSelector } from 'react-redux';
-import { RootState } from 'types';
+import { RootState, User } from 'types';
 
-export const useCurrentUser = () => {
+export const useCurrentUser = (): [
+  User | undefined,
+  boolean,
+  string | undefined
+] => {
   const { info, loading, error } = useSelector(
     (state: RootState) => state.user
   );
