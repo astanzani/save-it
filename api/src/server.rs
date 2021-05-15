@@ -51,7 +51,8 @@ pub async fn start() -> io::Result<()> {
                 web::scope("api/v1")
                     .configure(controllers::user::config)
                     .configure(controllers::bookmarks::config)
-                    .configure(controllers::feed::config),
+                    .configure(controllers::feed::config)
+                    .configure(controllers::unfurl::config),
             )
             .service(actix_files::Files::new("/static", path))
             // Routes are defined client side by React, so send index.html for any route that has no match.
