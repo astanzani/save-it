@@ -2,7 +2,7 @@ import { Box } from '@material-ui/core';
 import React from 'react';
 import { startFeed } from 'transport';
 import Navigation from './Nav';
-import BookmarksList from './BookmarksList';
+import BookmarksList from './Bookmarks/BookmarksList';
 import { getAllBookmarks } from 'store/bookmarks';
 import { useDispatch } from 'react-redux';
 

@@ -27,7 +27,7 @@ async fn add_bookmark(
 ) -> HttpResponse {
     let bookmark = bookmark.into_inner();
     let bookmark_with_creator_id = BookmarkRequestWithCreatorId {
-        url: String::from(&bookmark.url),
+        url: ensure_url(&bookmark.url),
         creator_id: String::from(&user.id),
     };
 
@@ -64,6 +64,17 @@ async fn get_bookmarks(data: web::Data<AppState>, user: AuthorizedUser) -> HttpR
         .unwrap();
 
     HttpResponse::Ok().json(bookmarks)
+}
+
+fn ensure_url(url: &str) -> String {
+    if url.starts_with("http") {
+        return String::from(url);
+    }
+
+    let mut s = String::from("https://");
+    s.push_str(url);
+
+    return s;
 }
 
 //TODO: Tests

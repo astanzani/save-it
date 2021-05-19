@@ -4,6 +4,7 @@ import { SignIn } from './signin';
 import { Home } from './home';
 import { ProtectedRoute } from './common';
 import { useTranslation } from 'react-i18next';
+import { CssBaseline } from '@material-ui/core';
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -15,6 +16,7 @@ export default function App() {
 
   return (
     <Router>
+      <CssBaseline />
       <Switch>
         <Route path="/signin">
           <SignIn />

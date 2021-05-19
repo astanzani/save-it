@@ -4,7 +4,7 @@ import { ThemeProvider } from '@material-ui/core';
 import { Provider } from 'react-redux';
 import App from './pages/App';
 import reportWebVitals from './reportWebVitals';
-import { baseTheme } from './themes';
+import { baseTheme, darkTheme } from './themes';
 import { store } from './store';
 import { init as initI18n } from './i18n';
 import './index.css';
@@ -14,7 +14,7 @@ initI18n();
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
-      <ThemeProvider theme={baseTheme}>
+      <ThemeProvider theme={darkTheme}>
         <App />
       </ThemeProvider>
     </Provider>
