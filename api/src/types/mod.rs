@@ -83,3 +83,10 @@ pub struct FeedEvent<T> {
     pub user_id: String,
     pub data: T,
 }
+
+#[derive(Deserialize, Serialize)]
+pub struct ParsedMetadata {
+    pub title: Option<String>,
+    pub description: Option<String>,
+    pub image: Option<String>,
+}

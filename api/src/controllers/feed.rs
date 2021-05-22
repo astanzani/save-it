@@ -81,10 +81,6 @@ impl WsSession {
         ctx.run_interval(HEARTBEAT_INTERVAL, |act, ctx| {
             // check client heartbeats
             if Instant::now().duration_since(act.hb) > CLIENT_TIMEOUT {
-                // heartbeat timed out
-                println!("Websocket Client heartbeat failed, disconnecting!");
-
-                // notify chat server
                 act.addr.do_send(Disconnect { id: act.id });
 
                 // stop actor
@@ -118,12 +114,6 @@ pub struct Connect {
 #[rtype(result = "()")]
 pub struct Disconnect {
     pub id: usize,
-}
-
-#[derive(Message)]
-#[rtype(result = "()")]
-pub struct Event {
-    pub id: String,
 }
 
 pub struct Session {

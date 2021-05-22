@@ -26,11 +26,7 @@ export default makeStyles((theme) => ({
     flex: '1',
     cursor: 'pointer',
     padding: theme.spacing(2),
-    // paddingTop: theme.spacing(1),
-    // paddingBottom: theme.spacing(1),
     position: 'relative',
-    // paddingTop: theme.spacing(2),
-    // paddingBottom: theme.spacing(2),
 
     '&:hover': {
       background: theme.palette.action.hover,
@@ -38,6 +34,7 @@ export default makeStyles((theme) => ({
   },
   cardImageContainer: {
     display: 'flex',
+    flexShrink: 0,
     width: 100,
     height: 100,
     marginRight: theme.spacing(1),
@@ -48,9 +45,13 @@ export default makeStyles((theme) => ({
     objectFit: 'cover',
   },
   textEllipsis: {
-    whiteSpace: 'nowrap',
+    // whiteSpace: 'nowrap',
+    // overflow: 'hidden',
+    // textOverflow: 'ellipsis',
+    display: '-webkit-box',
+    '-webkit-line-clamp': 2,
+    '-webkit-box-orient': 'vertical',
     overflow: 'hidden',
-    textOverflow: 'ellipsis',
   },
   cardLink: {
     color: 'inherit',
