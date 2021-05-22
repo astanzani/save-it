@@ -106,21 +106,9 @@ impl UsersServiceTrait for UsersService {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::helpers::mocks;
     use crate::types::RegisterUserRequest;
-    use mongodb::Database;
     use serial_test::serial;
-    use std::env;
-
-    async fn setup() -> Database {
-        let db_uri = env::var("MONGO_TEST_URI").expect("Missing MONGO_TEST_URI env var");
-        let client = mongodb::Client::with_uri_str(&db_uri).await.unwrap();
-        let db = client.database("save-it-test-db");
-        db
-    }
-
-    async fn cleanup(db: &Database) {
-        db.drop(None).await.unwrap();
-    }
 
     fn get_mock_user() -> RegisterUserRequest {
         RegisterUserRequest {
@@ -135,7 +123,7 @@ mod tests {
     #[actix_rt::test]
     #[serial]
     async fn creates_new_user() {
-        let db = setup().await;
+        let db = mocks::get_test_db().await;
         let collection = db.collection("Users");
 
         let service = UsersService::new(collection);
@@ -146,13 +134,13 @@ mod tests {
 
         assert_eq!(inserted_id.is_ok(), true);
 
-        cleanup(&db).await;
+        mocks::drop_test_db(&db).await;
     }
 
     #[actix_rt::test]
     #[serial]
     async fn gets_user_by_id() {
-        let db = setup().await;
+        let db = mocks::get_test_db().await;
         let collection = db.collection("Users");
 
         let user = get_mock_user();
@@ -173,7 +161,9 @@ mod tests {
 
         if let FindOneResult::Found(u) = found_user {
             assert_eq!(u.id, id);
+            mocks::drop_test_db(&db).await;
         } else {
+            mocks::drop_test_db(&db).await;
             panic!("Did not find user");
         }
     }
@@ -181,7 +171,7 @@ mod tests {
     #[actix_rt::test]
     #[serial]
     async fn gets_user_by_email() {
-        let db = setup().await;
+        let db = mocks::get_test_db().await;
         let collection = db.collection("Users");
 
         let user = get_mock_user();
@@ -200,7 +190,9 @@ mod tests {
 
         if let FindOneResult::Found(u) = found_user {
             assert_eq!(u.email, user.email);
+            mocks::drop_test_db(&db).await;
         } else {
+            mocks::drop_test_db(&db).await;
             panic!("Did not find user");
         }
     }
@@ -208,7 +200,7 @@ mod tests {
     #[actix_rt::test]
     #[serial]
     async fn gets_user_hashed_password() {
-        let db = setup().await;
+        let db = mocks::get_test_db().await;
         let collection = db.collection("Users");
 
         let user = get_mock_user();
@@ -228,5 +220,6 @@ mod tests {
         let hashed_password = service.get_hashed_password(&id).await.unwrap();
 
         assert_eq!(hashed_password, "password");
+        mocks::drop_test_db(&db).await;
     }
 }

@@ -65,4 +65,72 @@ impl BookmarksServiceTrait for BookmarksService {
     }
 }
 
-// TODO: Tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::helpers::mocks;
+    use crate::types::BookmarkRequestWithCreatorId;
+    use serial_test::serial;
+
+    fn get_mock_bookmark() -> BookmarkRequestWithCreatorId {
+        BookmarkRequestWithCreatorId {
+            url: String::from("bookmark-url"),
+            creator_id: String::from("user-id"),
+        }
+    }
+
+    #[actix_rt::test]
+    #[serial]
+    async fn creates_new_bookmark() {
+        let db = mocks::get_test_db().await;
+        let collection = db.collection("Bookmarks");
+
+        let service = BookmarksService::new(collection);
+
+        let bookmark = get_mock_bookmark();
+
+        let inserted_id = service.create(bookmark).await;
+
+        assert_eq!(inserted_id.is_ok(), true);
+
+        mocks::drop_test_db(&db).await;
+    }
+
+    #[actix_rt::test]
+    #[serial]
+    async fn gets_all_bookmarks_for_user() {
+        let db = mocks::get_test_db().await;
+        let collection = db.collection("Bookmarks");
+
+        let my_bookmark = get_mock_bookmark();
+        let doc = bson::to_bson(&my_bookmark)
+            .unwrap()
+            .as_document()
+            .unwrap()
+            .to_owned();
+        collection.insert_one(doc, None).await.unwrap().inserted_id;
+
+        let other_user_bookmark = BookmarkRequestWithCreatorId {
+            url: String::from("other-bookmark-url"),
+            creator_id: String::from("other-user-id"),
+        };
+        let other_doc = bson::to_bson(&other_user_bookmark)
+            .unwrap()
+            .as_document()
+            .unwrap()
+            .to_owned();
+        collection
+            .insert_one(other_doc, None)
+            .await
+            .unwrap()
+            .inserted_id;
+
+        let service = BookmarksService::new(collection);
+
+        let found = service.get_all_by_user_id("user-id").await.unwrap();
+        let found_bookmark = found.get(0).unwrap();
+
+        assert_eq!(found.len(), 1);
+        assert_eq!(found_bookmark.url, "bookmark-url");
+    }
+}

@@ -101,7 +101,6 @@ impl WsSession {
 #[rtype(result = "()")]
 pub struct Message(pub String);
 
-/// New chat session is created
 #[derive(Message)]
 #[rtype(usize)]
 pub struct Connect {
@@ -126,10 +125,7 @@ pub struct WsServer {
     rng: ThreadRng,
 }
 
-/// Make actor from `ChatServer`
 impl Actor for WsServer {
-    /// We are going to use simple Context, we just need ability to communicate
-    /// with other actors.
     type Context = Context<Self>;
 }
 
@@ -144,12 +140,8 @@ impl Handler<Connect> for WsServer {
         };
         self.sessions.insert(id, session);
 
-        // notify all users in same room
         self.send_message(&msg.user_id, "Connected");
 
-        // register session with random id
-
-        // send id back
         id
     }
 }
@@ -167,11 +159,6 @@ impl Handler<Disconnect> for WsServer {
             }
             None => {}
         }
-
-        // remove address
-        // if self.sessions.remove(&msg.id).is_some() {
-        //     self.send_message(&msg.id, "Disconnected");
-        // }
     }
 }
 

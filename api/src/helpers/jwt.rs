@@ -28,3 +28,16 @@ pub fn generate_jwt(id: &str) -> Result<String, Error> {
 
     Ok(token)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn generates_and_parses_jwt() {
+        let generated = generate_jwt("user-id").unwrap();
+        let parsed = parse_jwt(&generated).unwrap();
+
+        assert_eq!(parsed.id, "user-id");
+    }
+}

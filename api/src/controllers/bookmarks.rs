@@ -77,4 +77,55 @@ fn ensure_url(url: &str) -> String {
     return s;
 }
 
-//TODO: Tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{controllers, helpers::mocks};
+    use actix::Actor;
+    use actix_web::{body::Body, http, web};
+    use serde_json::json;
+
+    #[actix_rt::test]
+    async fn adds_new_bookmark() {
+        let services_container = mocks::get_services_mock();
+        let app_state = AppState { services_container };
+
+        let data = web::Data::new(app_state);
+        let bookmark = BookmarkRequest {
+            url: String::from("https://url.com"),
+        };
+        let auth_user = AuthorizedUser {
+            id: String::from("id"),
+        };
+        let json = web::Json(bookmark);
+        let ws_server = controllers::feed::WsServer::new().start();
+
+        let response = add_bookmark(data, json, auth_user, web::Data::new(ws_server)).await;
+        assert_eq!(response.status(), http::StatusCode::CREATED);
+    }
+
+    #[actix_rt::test]
+    async fn gets_all_bookmarks() {
+        let services_container = mocks::get_services_mock();
+        let app_state = AppState { services_container };
+
+        let data = web::Data::new(app_state);
+        let auth_user = AuthorizedUser {
+            id: String::from("id"),
+        };
+
+        let mut response = get_bookmarks(data, auth_user).await;
+        let json = response.take_body();
+        let json = json.as_ref().unwrap();
+
+        assert_eq!(response.status(), http::StatusCode::OK);
+        assert_eq!(
+            &Body::from(json!([{
+                "id":"bookmark-id",
+                "url": "https://url.com",
+                "creatorId": "user-id",
+            }])),
+            json
+        );
+    }
+}

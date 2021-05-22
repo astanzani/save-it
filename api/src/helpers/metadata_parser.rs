@@ -24,12 +24,8 @@ impl<'a> MetadataParser<'a> {
     }
 
     fn parse_title(&self) -> Option<String> {
-        // let title_selector =
-        //     Selector::parse(r#"meta[name="title"],meta[property="og:site_name"]"#).unwrap();
         let title_selector = Selector::parse(r#"title"#).unwrap();
         let title_el = &self.html.select(&title_selector).next();
-
-        // println!("EL: {:?}", title_el);
 
         match title_el {
             None => None,
@@ -74,5 +70,29 @@ impl<'a> MetadataParser<'a> {
                 }
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const HTML: &str = r#"<html>
+        <head>
+            <title>Page Title</title>
+            <meta name="description" content="Page Description" />
+            <meta itemprop="image" content="https://image-url.com" />
+        </head>
+    </html>"#;
+
+    #[test]
+    fn parses_metadata() {
+        let html = Html::parse_fragment(HTML);
+        let parser = MetadataParser::new(&html);
+        let metadata = parser.parse();
+
+        assert_eq!(metadata.title.unwrap(), "Page Title");
+        assert_eq!(metadata.description.unwrap(), "Page Description");
+        assert_eq!(metadata.image.unwrap(), "https://image-url.com");
     }
 }
