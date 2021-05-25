@@ -84,7 +84,7 @@ pub struct FeedEvent<T> {
     pub data: T,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct ParsedMetadata {
     pub title: Option<String>,
     pub description: Option<String>,

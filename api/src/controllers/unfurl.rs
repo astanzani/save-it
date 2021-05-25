@@ -1,4 +1,5 @@
 use actix_web::{web, HttpResponse};
+use cached::proc_macro::cached;
 use reqwest;
 use scraper::Html;
 use serde::Deserialize;
@@ -19,19 +20,20 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 async fn unfurl_url(_user: AuthorizedUser, query: web::Query<QueryUrl>) -> HttpResponse {
     let url = query.url.clone();
 
-    let body = fetch_url(&url).await;
+    let body = fetch_url(url).await;
 
     match body {
         None => HttpResponse::NotFound().finish(),
         Some(body) => {
-            let link_unfurled = parse_metadata_from_html(&body);
+            let link_unfurled = parse_metadata_from_html(body);
             HttpResponse::Ok().json(link_unfurled)
         }
     }
 }
 
-async fn fetch_url(url: &str) -> Option<String> {
-    let response = reqwest::get(url).await;
+#[cached(time = 1800)]
+async fn fetch_url(url: String) -> Option<String> {
+    let response = reqwest::get(&url).await;
 
     match response {
         Err(_e) => None,
@@ -45,7 +47,8 @@ async fn fetch_url(url: &str) -> Option<String> {
     }
 }
 
-fn parse_metadata_from_html(html_body: &str) -> ParsedMetadata {
+#[cached(time = 1800)]
+fn parse_metadata_from_html(html_body: String) -> ParsedMetadata {
     let html = Html::parse_fragment(&html_body);
     let metadata_parser = MetadataParser::new(&html);
     let parsed_metadata = metadata_parser.parse();
