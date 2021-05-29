@@ -3,7 +3,7 @@ export function startFeed() {
 
   // Proxy does not work for web socket.
   if (window.location.protocol.startsWith('https')) {
-    path = 'wss://save-it-v2.herokuapp.com/api/v1/feed';
+    path = 'wss://save-it-web.herokuapp.com/api/v1/feed';
   } else {
     // If running with local api, use local web socket server.
     path = 'ws://localhost:8080/api/v1/feed';

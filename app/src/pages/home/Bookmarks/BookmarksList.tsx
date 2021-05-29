@@ -16,7 +16,7 @@ export default function BookmarksList() {
   }
 
   return (
-    <Box display="flex" flex="1" padding={2} className={classes.root}>
+    <Box display="flex" flex="1" overflow="auto" className={classes.root}>
       <List className={classes.list}>
         {bookmarks.map((bookmark) => (
           <ListItem

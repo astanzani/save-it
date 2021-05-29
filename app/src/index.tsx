@@ -11,10 +11,13 @@ import './index.css';
 
 initI18n();
 
+const themePref = new URLSearchParams(window.location.search).get('theme');
+const theme = themePref === 'dark' ? darkTheme : baseTheme;
+
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
-      <ThemeProvider theme={darkTheme}>
+      <ThemeProvider theme={theme}>
         <App />
       </ThemeProvider>
     </Provider>

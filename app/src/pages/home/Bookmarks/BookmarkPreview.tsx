@@ -40,7 +40,7 @@ export default function BookmarkPreview({ url }: Props) {
             rel="noopener"
             className={classes.cardLink}
           >
-            {preview.title}
+            {preview.title ?? '<No Title>'}
           </Link>
         ) : (
           <Skeleton

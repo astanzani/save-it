@@ -5,6 +5,7 @@ const translations = {
   'signIn.form.password': 'Password',
   'signIn.form.signIn': 'Sign In',
   'home.navigation.menuItem.allBookmarks': 'All bookmarks',
+  'home.navigation.menuItem.trash': 'Trash',
   'home.navigation.userInfo.menuItem.profile': 'Profile',
   'home.navigation.userInfo.menuItem.settings': 'Settings',
   'home.navigation.userInfo.menuItem.browserExtension': 'Browser extension',

@@ -2,7 +2,7 @@ import { Box } from '@material-ui/core';
 import React from 'react';
 import { startFeed } from 'transport';
 import Navigation from './Nav';
-import BookmarksList from './Bookmarks/BookmarksList';
+import Main from './Main/Main';
 import { getAllBookmarks } from 'store/bookmarks';
 import { useDispatch } from 'react-redux';
 
@@ -17,7 +17,7 @@ export function Home() {
   return (
     <Box display="flex" flex="1">
       <Navigation />
-      <BookmarksList />
+      <Main />
     </Box>
   );
 }
