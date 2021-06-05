@@ -56,6 +56,7 @@ impl BookmarksServiceTrait for BookmarksService {
                 id: bookmark.id.to_string(),
                 url: bookmark.url,
                 creator_id: bookmark.creator_id,
+                metadata: bookmark.metadata,
             };
 
             results.push(bookmark);
@@ -70,12 +71,18 @@ mod tests {
     use super::*;
     use crate::helpers::mocks;
     use crate::types::BookmarkRequestWithCreatorId;
+    use crate::types::ParsedMetadata;
     use serial_test::serial;
 
     fn get_mock_bookmark() -> BookmarkRequestWithCreatorId {
         BookmarkRequestWithCreatorId {
             url: String::from("bookmark-url"),
             creator_id: String::from("user-id"),
+            metadata: ParsedMetadata {
+                title: None,
+                description: None,
+                image: None,
+            },
         }
     }
 
@@ -113,6 +120,11 @@ mod tests {
         let other_user_bookmark = BookmarkRequestWithCreatorId {
             url: String::from("other-bookmark-url"),
             creator_id: String::from("other-user-id"),
+            metadata: ParsedMetadata {
+                title: None,
+                description: None,
+                image: None,
+            },
         };
         let other_doc = bson::to_bson(&other_user_bookmark)
             .unwrap()

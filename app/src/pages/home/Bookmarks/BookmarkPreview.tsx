@@ -1,80 +1,53 @@
+import React from 'react';
 import { Box, Link, Typography } from '@material-ui/core';
-import { Skeleton } from '@material-ui/lab';
-import React, { useEffect, useState } from 'react';
-import { unfurlLink } from 'transport/unfurl';
-import { LinkUnfurled } from 'types';
+import { Bookmark } from 'types';
+import { HighlightedText } from '../../common';
 import useStyles from './styles';
 
 interface Props {
-  url: string;
+  bookmark: Bookmark;
+  query: string;
 }
 
-export default function BookmarkPreview({ url }: Props) {
-  const [preview, setPreview] = useState<LinkUnfurled | null>(null);
+export default function BookmarkPreview({ bookmark, query }: Props) {
   const classes = useStyles();
 
-  useEffect(() => {
-    unfurlLink(url).then((metadata) => {
-      setPreview(metadata);
-    });
-  }, [url]);
+  const { metadata } = bookmark;
 
   return (
     <Box display="flex" padding={1}>
       <div className={classes.cardImageContainer}>
-        {preview ? (
-          <img
-            src={preview?.image}
-            alt={preview ? `${preview.title} banner` : ''}
-            className={classes.cardImage}
-          />
-        ) : (
-          <Skeleton variant="rect" animation="wave" width={100} height={100} />
-        )}
+        <img
+          src={metadata.image}
+          alt={metadata.title ? `${metadata.title} banner` : ''}
+          className={classes.cardImage}
+        />
       </div>
       <Box display="flex" flexDirection="column">
-        {preview ? (
-          <Link
-            href={url}
-            target="_blank"
-            rel="noopener"
-            className={classes.cardLink}
-          >
-            {preview.title ?? '<No Title>'}
-          </Link>
-        ) : (
-          <Skeleton
-            variant="rect"
-            animation="wave"
-            width={300}
-            height={20}
-            style={{ marginBottom: '8px' }}
+        <Link
+          href={bookmark.url}
+          target="_blank"
+          rel="noopener"
+          className={classes.cardLink}
+        >
+          <HighlightedText
+            // TODO: What to do when there is no title?
+            text={metadata.title ?? '<No Title>'}
+            query={query}
           />
-        )}
-        {preview ? (
+        </Link>
+        {metadata.description && (
           <Typography
             gutterBottom
             variant="caption"
             className={classes.textEllipsis}
           >
-            {preview?.description}
+            <HighlightedText text={metadata.description} query={query} />
           </Typography>
-        ) : (
-          <Skeleton
-            variant="rect"
-            animation="wave"
-            width={500}
-            height={40}
-            style={{ marginBottom: '8px' }}
-          />
         )}
-        {preview ? (
-          <Typography variant="caption" className={classes.textEllipsis}>
-            {url}
-          </Typography>
-        ) : (
-          <Skeleton variant="rect" animation="wave" width={250} height={20} />
-        )}
+        <Typography variant="caption" className={classes.textEllipsis}>
+          <HighlightedText text={bookmark.url} query={query} />
+        </Typography>
       </Box>
     </Box>
   );

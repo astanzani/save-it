@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { getBookmarks } from 'transport';
 
 import { Bookmark } from 'types';
@@ -7,6 +7,7 @@ type State = {
   entries: Bookmark[];
   loading: boolean;
   error: string | undefined;
+  query: string;
 };
 
 export const getAllBookmarks = createAsyncThunk(
@@ -18,8 +19,17 @@ export const getAllBookmarks = createAsyncThunk(
 
 const bookmarks = createSlice({
   name: 'Bookmarks',
-  initialState: { entries: [], loading: false, error: undefined } as State,
-  reducers: {},
+  initialState: {
+    entries: [],
+    loading: false,
+    error: undefined,
+    query: '',
+  } as State,
+  reducers: {
+    search(state, action: PayloadAction<string>) {
+      state.query = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder.addCase(getAllBookmarks.fulfilled, (state, action) => {
       state.entries = action.payload;

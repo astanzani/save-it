@@ -13,6 +13,5 @@
     "app:start-local-api": "yarn --cwd app start-local-api"
   },
   "dependencies": {
-    "i18next-browser-languagedetector": "^6.1.1"
   }
 }

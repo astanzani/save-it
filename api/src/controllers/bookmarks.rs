@@ -1,8 +1,11 @@
 use actix::Addr;
 use actix_web::{web, HttpResponse};
+use cached::proc_macro::cached;
 use mongodb::error::ErrorKind;
+use scraper::Html;
 
-use crate::types::BookmarkRequest;
+use crate::helpers::metadata_parser::MetadataParser;
+use crate::types::{BookmarkRequest, ParsedMetadata};
 use crate::{middlewares::auth::AuthorizedUser, types::BookmarkRequestWithCreatorId};
 use crate::{
     server::AppState,
@@ -26,9 +29,11 @@ async fn add_bookmark(
     srv: web::Data<Addr<WsServer>>,
 ) -> HttpResponse {
     let bookmark = bookmark.into_inner();
+    let metadata = unfurl_url(bookmark.url.clone()).await;
     let bookmark_with_creator_id = BookmarkRequestWithCreatorId {
         url: ensure_url(&bookmark.url),
         creator_id: String::from(&user.id),
+        metadata: metadata.clone(),
     };
 
     let bookmarks_service = &data.services_container.bookmarks_service.lock().unwrap();
@@ -42,6 +47,7 @@ async fn add_bookmark(
                     id: String::from(&inserted_id),
                     url: String::from(&bookmark.url),
                     creator_id: String::from(&user.id),
+                    metadata: metadata.clone(),
                 },
                 user_id: String::from(&user.id),
             };
@@ -75,6 +81,43 @@ fn ensure_url(url: &str) -> String {
     s.push_str(url);
 
     return s;
+}
+
+#[cached(time = 1800)]
+async fn unfurl_url(url: String) -> ParsedMetadata {
+    let body = fetch_url(url).await;
+
+    match body {
+        None => ParsedMetadata {
+            title: None,
+            description: None,
+            image: None,
+        },
+        Some(body) => parse_metadata_from_html(body),
+    }
+}
+
+async fn fetch_url(url: String) -> Option<String> {
+    let response = reqwest::get(&url).await;
+
+    match response {
+        Err(_e) => None,
+        Ok(response) => {
+            let body = response.text().await;
+            match body {
+                Err(_e) => None,
+                Ok(body) => Some(body),
+            }
+        }
+    }
+}
+
+fn parse_metadata_from_html(html_body: String) -> ParsedMetadata {
+    let html = Html::parse_fragment(&html_body);
+    let metadata_parser = MetadataParser::new(&html);
+    let parsed_metadata = metadata_parser.parse();
+
+    parsed_metadata
 }
 
 #[cfg(test)]
@@ -124,6 +167,11 @@ mod tests {
                 "id":"bookmark-id",
                 "url": "https://url.com",
                 "creatorId": "user-id",
+                "metadata": json!({
+                    "title": null,
+                    "description": null,
+                    "image": null,
+                })
             }])),
             json
         );

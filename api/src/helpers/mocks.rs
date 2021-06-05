@@ -7,8 +7,8 @@ use crate::{
     server::ServicesContainer,
     services::{bookmarks::BookmarksServiceTrait, users::UsersServiceTrait},
     types::{
-        BookmarkRequestWithCreatorId, BookmarkResponse, FindOneResult, RegisterUserRequest,
-        UserResponse,
+        BookmarkRequestWithCreatorId, BookmarkResponse, FindOneResult, ParsedMetadata,
+        RegisterUserRequest, UserResponse,
     },
 };
 
@@ -62,6 +62,11 @@ impl BookmarksServiceTrait for BookmarksServiceMock {
             id: String::from("bookmark-id"),
             url: String::from("https://url.com"),
             creator_id: String::from("user-id"),
+            metadata: ParsedMetadata {
+                title: None,
+                description: None,
+                image: None,
+            },
         });
 
         Ok(results)

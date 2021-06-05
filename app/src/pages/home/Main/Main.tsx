@@ -2,20 +2,27 @@ import React from 'react';
 import { Box, Divider, Typography } from '@material-ui/core';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { NavItemKind, RootState } from 'types';
+import { Bookmark, NavItemKind, RootState } from 'types';
 import BookmarksList from '../Bookmarks/BookmarksList';
-import useStyles from './styles';
+import Search from '../Search/Search';
+import ViewOptions from '../ViewOptions/ViewOptions';
 import { IconByName, DotSeparator } from '../../common';
+import Loading from './Loading';
+import useStyles from './styles';
 
 export default function Main() {
   const activeItem = useSelector(
     (state: RootState) => state.navigation.activeItem
   );
-  const count = useSelector(
-    (state: RootState) => state.bookmarks.entries.length
-  );
+  const {
+    entries: bookmarks,
+    loading,
+    query,
+  } = useSelector((state: RootState) => state.bookmarks);
   const { t } = useTranslation();
   const classes = useStyles();
+
+  const filteredBookmarks = filterByQuery(bookmarks, query);
 
   return (
     <Box
@@ -40,15 +47,51 @@ export default function Main() {
           />
         )}
         <Typography variant="h6" component="h1">
-          {activeItem.kind === NavItemKind.System
+          {query
+            ? 'Search Results'
+            : activeItem.kind === NavItemKind.System
             ? t(activeItem.label)
             : activeItem.label}
         </Typography>
         <DotSeparator />
-        {count}
+        {filteredBookmarks.length}
+      </Box>
+      <Box
+        display="flex"
+        alignItems="center"
+        justifyContent="space-between"
+        padding={1}
+      >
+        <Box flex="1">
+          <Search />
+        </Box>
+        <Box flex="2" display="flex" justifyContent="flex-end">
+          <ViewOptions />
+        </Box>
       </Box>
       <Divider />
-      <BookmarksList />
+      {loading ? (
+        <Loading />
+      ) : (
+        <BookmarksList bookmarks={filteredBookmarks} query={query} />
+      )}
     </Box>
   );
+}
+
+function filterByQuery(bookmarks: Bookmark[], query: string): Bookmark[] {
+  return bookmarks.filter((bookmark) => {
+    const { metadata, url } = bookmark;
+    const matchTitle = metadata.title ? match(query, metadata.title) : false;
+    const matchDescription = metadata.description
+      ? match(query, metadata.description)
+      : false;
+    const matchUrl = match(query, url);
+
+    return matchTitle || matchDescription || matchUrl;
+  });
+}
+
+function match(query: string, text: string): boolean {
+  return text.toLowerCase().includes(query.toLowerCase());
 }

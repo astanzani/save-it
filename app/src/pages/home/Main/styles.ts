@@ -21,4 +21,9 @@ export default makeStyles((theme) => ({
   icon: {
     marginRight: theme.spacing(2),
   },
+  progressBar: {
+    height: 6,
+    width: 300,
+    marginTop: theme.spacing(2),
+  },
 }));
