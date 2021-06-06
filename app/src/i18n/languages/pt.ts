@@ -11,6 +11,10 @@ const translations = {
   'home.navigation.userInfo.menuItem.browserExtension':
     'Extensão para navegador',
   'home.navigation.userInfo.menuItem.signOut': 'Sair',
+  'home.list.sort.dropdown.dateAdded': 'Por data',
+  'home.list.viewOptions.dropdown.list': 'Lista',
+  'home.list.fab': 'Adicionar',
+  'home.list.addNew.save': 'Salvar',
 };
 
 export default translations;

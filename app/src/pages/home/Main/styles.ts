@@ -26,4 +26,13 @@ export default makeStyles((theme) => ({
     width: 300,
     marginTop: theme.spacing(2),
   },
+  addPopover: {
+    padding: theme.spacing(2),
+    width: 500,
+  },
+  popoverSubmitButton: {
+    display: 'block',
+    marginLeft: 'auto',
+    marginTop: theme.spacing(2),
+  },
 }));

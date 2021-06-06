@@ -10,6 +10,10 @@ const translations = {
   'home.navigation.userInfo.menuItem.settings': 'Settings',
   'home.navigation.userInfo.menuItem.browserExtension': 'Browser extension',
   'home.navigation.userInfo.menuItem.signOut': 'Sign out',
+  'home.list.sort.dropdown.dateAdded': 'By date',
+  'home.list.viewOptions.dropdown.list': 'List',
+  'home.list.fab': 'Add',
+  'home.list.addNew.save': 'Save',
 };
 
 export default translations;

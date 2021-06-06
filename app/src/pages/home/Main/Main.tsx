@@ -8,6 +8,7 @@ import Search from '../Search/Search';
 import ViewOptions from '../ViewOptions/ViewOptions';
 import { IconByName, DotSeparator } from '../../common';
 import Loading from './Loading';
+import AddNew from './AddNew';
 import useStyles from './styles';
 
 export default function Main() {
@@ -38,23 +39,27 @@ export default function Main() {
         paddingLeft={1}
         paddingRight={1}
         alignItems="center"
+        justifyContent="space-between"
       >
-        {activeItem.kind === NavItemKind.System && (
-          <IconByName
-            className={classes.icon}
-            iconName={activeItem.iconName}
-            size="small"
-          />
-        )}
-        <Typography variant="h6" component="h1">
-          {query
-            ? 'Search Results'
-            : activeItem.kind === NavItemKind.System
-            ? t(activeItem.label)
-            : activeItem.label}
-        </Typography>
-        <DotSeparator />
-        {filteredBookmarks.length}
+        <Box display="flex" alignItems="center">
+          {activeItem.kind === NavItemKind.System && (
+            <IconByName
+              className={classes.icon}
+              iconName={activeItem.iconName}
+              size="small"
+            />
+          )}
+          <Typography variant="h6" component="h1">
+            {query
+              ? 'Search Results'
+              : activeItem.kind === NavItemKind.System
+              ? t(activeItem.label)
+              : activeItem.label}
+          </Typography>
+          <DotSeparator />
+          {filteredBookmarks.length}
+        </Box>
+        <AddNew />
       </Box>
       <Box
         display="flex"
