@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Divider, Typography } from '@material-ui/core';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
-import { Bookmark, NavItemKind, RootState } from 'types';
+import { Bookmark, NavItemKind, RootState, StateStatus } from 'types';
 import BookmarksList from '../Bookmarks/BookmarksList';
 import Search from '../Search/Search';
 import ViewOptions from '../ViewOptions/ViewOptions';
@@ -17,12 +17,13 @@ export default function Main() {
   );
   const {
     entries: bookmarks,
-    loading,
+    status,
     query,
   } = useSelector((state: RootState) => state.bookmarks);
   const { t } = useTranslation();
   const classes = useStyles();
 
+  const loading = status === StateStatus.Fetching;
   const filteredBookmarks = filterByQuery(bookmarks, query);
 
   return (

@@ -59,7 +59,7 @@ pub struct BookmarkRequestWithCreatorId {
     pub metadata: ParsedMetadata,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct BookmarkResponse {
     pub id: String,

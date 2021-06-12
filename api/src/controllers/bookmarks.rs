@@ -37,22 +37,24 @@ async fn add_bookmark(
     };
 
     let bookmarks_service = &data.services_container.bookmarks_service.lock().unwrap();
+
     let insert_result = bookmarks_service.create(bookmark_with_creator_id).await;
 
     match insert_result {
         Ok(inserted_id) => {
+            let inserted_bookmark = BookmarkResponse {
+                id: String::from(&inserted_id),
+                url: String::from(&bookmark.url),
+                creator_id: String::from(&user.id),
+                metadata: metadata.clone(),
+            };
             let event = FeedEvent {
                 kind: String::from("BOOKMARKS/ADD"),
-                data: BookmarkResponse {
-                    id: String::from(&inserted_id),
-                    url: String::from(&bookmark.url),
-                    creator_id: String::from(&user.id),
-                    metadata: metadata.clone(),
-                },
+                data: inserted_bookmark.clone(),
                 user_id: String::from(&user.id),
             };
             let _ = srv.do_send(event);
-            HttpResponse::Created().finish()
+            HttpResponse::Created().json(inserted_bookmark.clone())
         }
         Err(err) => match err.kind.as_ref() {
             ErrorKind::WriteError(_) => HttpResponse::BadRequest().finish(),

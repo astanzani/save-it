@@ -1,12 +1,17 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { getBookmarks } from 'transport';
+import {
+  createSlice,
+  createAsyncThunk,
+  PayloadAction,
+  SerializedError,
+} from '@reduxjs/toolkit';
+import { addBookmark, getBookmarks } from 'transport';
 
-import { Bookmark } from 'types';
+import { Bookmark, NewBookmarkInfo, StateStatus } from 'types';
 
 type State = {
   entries: Bookmark[];
-  loading: boolean;
-  error: string | undefined;
+  status: StateStatus;
+  error: SerializedError | undefined;
   query: string;
 };
 
@@ -17,11 +22,18 @@ export const getAllBookmarks = createAsyncThunk(
   }
 );
 
+export const createBookmark = createAsyncThunk(
+  'bookmarks/add',
+  async (bookmark: NewBookmarkInfo) => {
+    return addBookmark(bookmark);
+  }
+);
+
 const bookmarks = createSlice({
   name: 'Bookmarks',
   initialState: {
     entries: [],
-    loading: false,
+    status: StateStatus.Idle,
     error: undefined,
     query: '',
   } as State,
@@ -33,15 +45,26 @@ const bookmarks = createSlice({
   extraReducers: (builder) => {
     builder.addCase(getAllBookmarks.fulfilled, (state, action) => {
       state.entries = action.payload;
-      state.loading = false;
+      state.status = StateStatus.Idle;
       state.error = undefined;
     });
     builder.addCase(getAllBookmarks.pending, (state, action) => {
-      state.loading = true;
+      state.status = StateStatus.Fetching;
     });
     builder.addCase(getAllBookmarks.rejected, (state, action) => {
-      state.loading = false;
-      state.error = action.error.message;
+      state.status = StateStatus.Idle;
+      state.error = action.error;
+    });
+    builder.addCase(createBookmark.fulfilled, (state, action) => {
+      state.entries.push(action.payload);
+      state.status = StateStatus.Idle;
+    });
+    builder.addCase(createBookmark.pending, (state, action) => {
+      state.status = StateStatus.Creating;
+    });
+    builder.addCase(createBookmark.rejected, (state, action) => {
+      state.error = action.error;
+      state.status = StateStatus.Idle;
     });
   },
 });

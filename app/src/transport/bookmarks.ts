@@ -1,6 +1,7 @@
 import { Bookmark, NewBookmarkInfo } from 'types';
 import fetch from './fetch';
 import { HTTPMethod } from './types';
+import { ConflictError } from './errors';
 
 const BASE_URL = '/api/v1/bookmarks';
 
@@ -11,5 +12,7 @@ export async function getBookmarks() {
 }
 
 export async function addBookmark(bookmark: NewBookmarkInfo) {
-  return fetch(BASE_URL, HTTPMethod.POST, bookmark);
+  const response = await fetch(BASE_URL, HTTPMethod.POST, bookmark);
+  const created = await response.json();
+  return created as Bookmark;
 }

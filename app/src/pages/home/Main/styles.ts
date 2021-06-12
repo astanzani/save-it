@@ -31,8 +31,22 @@ export default makeStyles((theme) => ({
     width: 500,
   },
   popoverSubmitButton: {
+    position: 'relative',
     display: 'block',
     marginLeft: 'auto',
     marginTop: theme.spacing(2),
+  },
+  saveButtonWrapper: {
+    position: 'relative',
+    display: 'flex',
+    width: 'fit-content',
+    'margin-left': 'auto',
+  },
+  saveProgress: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginTop: -4,
+    marginLeft: -12,
   },
 }));
