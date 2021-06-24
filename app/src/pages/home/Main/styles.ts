@@ -34,13 +34,13 @@ export default makeStyles((theme) => ({
     position: 'relative',
     display: 'block',
     marginLeft: 'auto',
-    marginTop: theme.spacing(2),
+    // marginTop: theme.spacing(2),
   },
   saveButtonWrapper: {
     position: 'relative',
     display: 'flex',
-    width: 'fit-content',
-    'margin-left': 'auto',
+    // width: 'fit-content',
+    // 'margin-left': 'auto',
   },
   saveProgress: {
     position: 'absolute',

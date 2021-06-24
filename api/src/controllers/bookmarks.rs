@@ -5,7 +5,7 @@ use mongodb::error::ErrorKind;
 use scraper::Html;
 
 use crate::helpers::metadata_parser::MetadataParser;
-use crate::types::{BookmarkRequest, ParsedMetadata};
+use crate::types::{BookmarkRequest, ImportBookmarksRequest, ParsedMetadata};
 use crate::{middlewares::auth::AuthorizedUser, types::BookmarkRequestWithCreatorId};
 use crate::{
     server::AppState,
@@ -20,6 +20,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             .route(web::get().to(get_bookmarks))
             .route(web::post().to(add_bookmark)),
     );
+    cfg.service(web::resource("/bookmarks/import").route(web::post().to(import_bookmarks)));
 }
 
 async fn add_bookmark(
@@ -83,6 +84,33 @@ fn ensure_url(url: &str) -> String {
     s.push_str(url);
 
     return s;
+}
+
+async fn import_bookmarks(
+    data: web::Data<AppState>,
+    bookmarks: web::Json<ImportBookmarksRequest>,
+    user: AuthorizedUser,
+) -> HttpResponse {
+    let owned_bookmarks_request = bookmarks.into_inner();
+    let mut bookmarks_to_insert: Vec<BookmarkRequestWithCreatorId> = Vec::new();
+
+    for bookmark in owned_bookmarks_request.bookmarks {
+        let metadata = unfurl_url(bookmark.url.clone()).await;
+        bookmarks_to_insert.push(BookmarkRequestWithCreatorId {
+            url: ensure_url(&bookmark.url),
+            metadata,
+            creator_id: String::from(&user.id),
+        });
+    }
+
+    let bookmarks_service = &data.services_container.bookmarks_service.lock().unwrap();
+
+    let inserted_ids = bookmarks_service
+        .create_many(bookmarks_to_insert)
+        .await
+        .unwrap();
+
+    HttpResponse::Created().json(inserted_ids)
 }
 
 #[cached(time = 1800)]

@@ -53,6 +53,12 @@ pub struct BookmarkRequest {
 
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ImportBookmarksRequest {
+    pub bookmarks: Vec<BookmarkRequest>,
+}
+
+#[derive(Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BookmarkRequestWithCreatorId {
     pub url: String,
     pub creator_id: String,

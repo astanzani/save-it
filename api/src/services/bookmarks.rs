@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use futures::StreamExt;
 use mongodb::{
-    bson::{self, doc, Bson},
+    bson::{self, doc, Bson, Document},
     error::Error,
     Collection,
 };
@@ -11,6 +11,10 @@ use crate::types::{BookmarkDB, BookmarkRequestWithCreatorId, BookmarkResponse};
 #[async_trait]
 pub trait BookmarksServiceTrait {
     async fn create(&self, bookmark: BookmarkRequestWithCreatorId) -> Result<String, Error>;
+    async fn create_many(
+        &self,
+        bookmarks: Vec<BookmarkRequestWithCreatorId>,
+    ) -> Result<Vec<String>, Error>;
     async fn get_all_by_user_id(&self, user_id: &str) -> Result<Vec<BookmarkResponse>, Error>;
 }
 
@@ -40,6 +44,32 @@ impl BookmarksServiceTrait for BookmarksService {
         let inserted_id = inserted_id.to_string();
 
         Ok(String::from(inserted_id))
+    }
+
+    async fn create_many(
+        &self,
+        bookmarks: Vec<BookmarkRequestWithCreatorId>,
+    ) -> Result<Vec<String>, Error> {
+        let serialized: Vec<Bson> = bookmarks
+            .iter()
+            .map(|bookmark| bson::to_bson(&bookmark).unwrap())
+            .collect();
+        let docs: Vec<Document> = serialized
+            .iter()
+            .map(|b| b.as_document().unwrap().to_owned())
+            .collect();
+
+        let result = self.collection.insert_many(docs, None).await?;
+        let ids: Vec<bson::oid::ObjectId> = result
+            .inserted_ids
+            .iter()
+            .map(|(k, v)| bson::from_bson(v.to_owned()).unwrap())
+            .collect();
+        let ids_str = ids.iter().map(|id| id.to_string()).collect();
+
+        Ok(ids_str)
+
+        // self.collection.i
     }
 
     async fn get_all_by_user_id(&self, user_id: &str) -> Result<Vec<BookmarkResponse>, Error> {

@@ -56,6 +56,13 @@ impl BookmarksServiceTrait for BookmarksServiceMock {
         Ok(String::from("inserted-id"))
     }
 
+    async fn create_many(
+        &self,
+        _bookmarks: Vec<BookmarkRequestWithCreatorId>,
+    ) -> Result<Vec<String>, Error> {
+        Ok(vec![String::from("id")])
+    }
+
     async fn get_all_by_user_id(&self, _user_id: &str) -> Result<Vec<BookmarkResponse>, Error> {
         let mut results: Vec<BookmarkResponse> = Vec::new();
         results.push(BookmarkResponse {

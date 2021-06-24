@@ -7,11 +7,13 @@ import {
   Popover,
   TextField,
 } from '@material-ui/core';
-import { Bookmark } from '@material-ui/icons';
+import { Bookmark, CloudUpload } from '@material-ui/icons';
 import { useTranslation } from 'react-i18next';
 import { useDispatch, useSelector } from 'react-redux';
-import { createBookmark } from 'store/bookmarks';
+import { createBookmark, getAllBookmarks } from 'store/bookmarks';
 import { usePrevious } from 'hooks/usePrevious';
+import { importBookmarks } from 'transport';
+import { parseBookmarksFromString } from 'utils';
 import { RootState, StateStatus } from 'types';
 import useStyles from './styles';
 
@@ -19,6 +21,7 @@ const INITIAL_STATE = 'https://';
 
 export default function AddNew() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [file, setFile] = useState<File | undefined>();
   const [url, setUrl] = useState(INITIAL_STATE);
   const { t } = useTranslation();
   const dispatch = useDispatch();
@@ -38,6 +41,22 @@ export default function AddNew() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUrl(e.target.value);
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFile(e.target.files[0]);
+
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        const result = event.target?.result;
+        if (result) {
+          await importBookmarks(parseBookmarksFromString(result as string));
+          dispatch(getAllBookmarks());
+        }
+      };
+      reader.readAsText(e.target.files[0]);
+    }
   };
 
   const onSave = (e: React.FormEvent) => {
@@ -84,20 +103,43 @@ export default function AddNew() {
               value={url}
               onChange={handleInputChange}
             />
-            <div className={classes.saveButtonWrapper}>
+            <Box
+              display="flex"
+              alignItems="center"
+              justifyContent="space-between"
+              marginTop={1}
+            >
               <Button
-                className={classes.popoverSubmitButton}
-                variant="contained"
-                color="primary"
-                disabled={creating}
-                onClick={onSave}
+                variant="text"
+                startIcon={<CloudUpload />}
+                component="label"
               >
-                {t('home.list.addNew.save')}
+                Import
+                <input
+                  type="file"
+                  accept="text/html"
+                  hidden={true}
+                  onChange={handleFileInputChange}
+                />
               </Button>
-              {creating && (
-                <CircularProgress size={24} className={classes.saveProgress} />
-              )}
-            </div>
+              <div className={classes.saveButtonWrapper}>
+                <Button
+                  className={classes.popoverSubmitButton}
+                  variant="contained"
+                  color="primary"
+                  disabled={creating}
+                  onClick={onSave}
+                >
+                  {t('home.list.addNew.save')}
+                </Button>
+                {creating && (
+                  <CircularProgress
+                    size={24}
+                    className={classes.saveProgress}
+                  />
+                )}
+              </div>
+            </Box>
           </form>
         </Paper>
       </Popover>
