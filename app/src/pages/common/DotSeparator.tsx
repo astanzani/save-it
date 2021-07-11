@@ -12,7 +12,7 @@ export function DotSeparator() {
       marginLeft={1}
       marginRight={1}
     >
-      <FiberManualRecord fontSize="inherit" />
+      <FiberManualRecord fontSize="inherit" color="inherit" />
     </Box>
   );
 }

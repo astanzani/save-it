@@ -63,7 +63,7 @@ impl BookmarksServiceTrait for BookmarksService {
         let ids: Vec<bson::oid::ObjectId> = result
             .inserted_ids
             .iter()
-            .map(|(k, v)| bson::from_bson(v.to_owned()).unwrap())
+            .map(|(_k, v)| bson::from_bson(v.to_owned()).unwrap())
             .collect();
         let ids_str = ids.iter().map(|id| id.to_string()).collect();
 
@@ -87,6 +87,7 @@ impl BookmarksServiceTrait for BookmarksService {
                 url: bookmark.url,
                 creator_id: bookmark.creator_id,
                 metadata: bookmark.metadata,
+                created_at: bookmark.created_at,
             };
 
             results.push(bookmark);
@@ -113,6 +114,7 @@ mod tests {
                 description: None,
                 image: None,
             },
+            created_at: 0,
         }
     }
 
@@ -155,6 +157,7 @@ mod tests {
                 description: None,
                 image: None,
             },
+            created_at: 0,
         };
         let other_doc = bson::to_bson(&other_user_bookmark)
             .unwrap()

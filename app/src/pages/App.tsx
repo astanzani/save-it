@@ -1,30 +1,39 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { CssBaseline } from '@material-ui/core';
+import { useTranslation } from 'react-i18next';
+import { ThemeProvider } from '@material-ui/core';
+import { baseTheme, darkTheme } from '../themes';
 import { SignIn } from './signin';
 import { Home } from './home';
 import { ProtectedRoute } from './common';
-import { useTranslation } from 'react-i18next';
-import { CssBaseline } from '@material-ui/core';
+import { useSelector } from 'react-redux';
+import { RootState } from 'types';
 
 export default function App() {
   const { i18n } = useTranslation();
-  const { language } = i18n;
+  const theme = useSelector((state: RootState) => state.settings.theme);
+  const language = useSelector((state: RootState) => state.settings.language);
+  // const { language } = i18n;
 
   useEffect(() => {
+    i18n.changeLanguage(language);
     document.documentElement.lang = language;
-  }, [language]);
+  }, [i18n, language]);
 
   return (
-    <Router>
-      <CssBaseline />
-      <Switch>
-        <Route path="/signin">
-          <SignIn />
-        </Route>
-        <ProtectedRoute exact path="/">
-          <Home />
-        </ProtectedRoute>
-      </Switch>
-    </Router>
+    <ThemeProvider theme={theme === 'dark' ? darkTheme : baseTheme}>
+      <Router>
+        <CssBaseline />
+        <Switch>
+          <Route path="/signin">
+            <SignIn />
+          </Route>
+          <ProtectedRoute exact path="/">
+            <Home />
+          </ProtectedRoute>
+        </Switch>
+      </Router>
+    </ThemeProvider>
   );
 }

@@ -3,6 +3,7 @@ use actix_web::{web, HttpResponse};
 use cached::proc_macro::cached;
 use mongodb::error::ErrorKind;
 use scraper::Html;
+use std::time;
 
 use crate::helpers::metadata_parser::MetadataParser;
 use crate::types::{BookmarkRequest, ImportBookmarksRequest, ParsedMetadata};
@@ -31,10 +32,15 @@ async fn add_bookmark(
 ) -> HttpResponse {
     let bookmark = bookmark.into_inner();
     let metadata = unfurl_url(bookmark.url.clone()).await;
+    let ts = time::SystemTime::now()
+        .duration_since(time::UNIX_EPOCH)
+        .unwrap()
+        .as_millis();
     let bookmark_with_creator_id = BookmarkRequestWithCreatorId {
         url: ensure_url(&bookmark.url),
         creator_id: String::from(&user.id),
         metadata: metadata.clone(),
+        created_at: ts.clone() as i64,
     };
 
     let bookmarks_service = &data.services_container.bookmarks_service.lock().unwrap();
@@ -48,6 +54,7 @@ async fn add_bookmark(
                 url: String::from(&bookmark.url),
                 creator_id: String::from(&user.id),
                 metadata: metadata.clone(),
+                created_at: ts.clone() as i64,
             };
             let event = FeedEvent {
                 kind: String::from("BOOKMARKS/ADD"),
@@ -96,10 +103,15 @@ async fn import_bookmarks(
 
     for bookmark in owned_bookmarks_request.bookmarks {
         let metadata = unfurl_url(bookmark.url.clone()).await;
+        let ts = time::SystemTime::now()
+            .duration_since(time::UNIX_EPOCH)
+            .unwrap()
+            .as_millis();
         bookmarks_to_insert.push(BookmarkRequestWithCreatorId {
             url: ensure_url(&bookmark.url),
             metadata,
             creator_id: String::from(&user.id),
+            created_at: ts.clone() as i64,
         });
     }
 

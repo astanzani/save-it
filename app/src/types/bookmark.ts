@@ -9,7 +9,8 @@ export interface BookmarkMetadata {
 export interface Bookmark {
   id: BookmarkId;
   url: string;
-  metadata: BookmarkMetadata,
+  metadata: BookmarkMetadata;
+  createdAt: number;
 }
 
 export interface NewBookmarkInfo {

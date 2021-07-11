@@ -1,7 +1,8 @@
 import React from 'react';
 import { Box, Link, Typography } from '@material-ui/core';
+import { useTranslation } from 'react-i18next';
 import { Bookmark } from 'types';
-import { HighlightedText } from '../../common';
+import { DotSeparator, HighlightedText } from '../../common';
 import useStyles from './styles';
 
 interface Props {
@@ -11,11 +12,12 @@ interface Props {
 
 export default function BookmarkPreview({ bookmark, query }: Props) {
   const classes = useStyles();
+  const { i18n } = useTranslation();
 
   const { metadata } = bookmark;
 
   return (
-    <Box display="flex" padding={1}>
+    <Box display="flex" padding={1} flex="1">
       <div className={classes.cardImageContainer}>
         <img
           src={metadata.image}
@@ -23,7 +25,7 @@ export default function BookmarkPreview({ bookmark, query }: Props) {
           className={classes.cardImage}
         />
       </div>
-      <Box display="flex" flexDirection="column">
+      <Box display="flex" flexDirection="column" flex="1">
         <Link
           href={bookmark.url}
           target="_blank"
@@ -45,9 +47,21 @@ export default function BookmarkPreview({ bookmark, query }: Props) {
             <HighlightedText text={metadata.description} query={query} />
           </Typography>
         )}
-        <Typography variant="caption" className={classes.textEllipsis}>
-          <HighlightedText text={bookmark.url} query={query} />
-        </Typography>
+        <Box display="flex" className={classes.secondaryText}>
+          <Typography
+            variant="caption"
+            className={classes.urlEllipsis}
+            color="textSecondary"
+          >
+            <HighlightedText text={bookmark.url} query={query} />
+          </Typography>
+          <DotSeparator />
+          <Typography variant="caption" color="textSecondary">
+            {new Intl.DateTimeFormat(i18n.language).format(
+              new Date(bookmark.createdAt)
+            )}
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );

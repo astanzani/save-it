@@ -12,6 +12,7 @@ export default makeStyles((theme) => ({
   listItem: {
     paddingTop: 0,
     paddingBottom: '1px',
+    flex: 1,
 
     '&:hover': {
       background: theme.palette.action.hover,
@@ -53,6 +54,14 @@ export default makeStyles((theme) => ({
     '-webkit-box-orient': 'vertical',
     overflow: 'hidden',
   },
+  urlEllipsis: {
+    display: '-webkit-box',
+    '-webkit-line-clamp': 1,
+    '-webkit-box-orient': 'vertical',
+    overflow: 'hidden',
+    maxWidth: '50%',
+    wordBreak: 'break-all',
+  },
   cardLink: {
     color: 'inherit',
     textDecoration: 'none',
@@ -73,5 +82,8 @@ export default makeStyles((theme) => ({
       right: 0,
       bottom: 0,
     },
+  },
+  secondaryText: {
+    color: theme.palette.text.secondary,
   },
 }));

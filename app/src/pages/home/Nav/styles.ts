@@ -36,4 +36,9 @@ export default makeStyles((theme) => ({
   userInfoMenuItemIcon: {
     marginRight: theme.spacing(1),
   },
+  modal: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 }));

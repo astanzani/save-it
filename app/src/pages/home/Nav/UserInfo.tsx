@@ -4,8 +4,13 @@ import {
   Box,
   ButtonBase,
   IconButton,
+  Fade,
   Menu,
   MenuItem,
+  Modal,
+  Dialog,
+  DialogTitle,
+  DialogContent,
   Typography,
 } from '@material-ui/core';
 import {
@@ -17,14 +22,16 @@ import {
   WebOutlined,
 } from '@material-ui/icons';
 import { useCurrentUser } from 'hooks';
-import useStyles from './styles';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
 import { logoutUser } from 'store';
+import SettingsModal from '../Settings/Settings';
+import useStyles from './styles';
 
 export default function UserInfo() {
   const [userInfo] = useCurrentUser();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const { t } = useTranslation();
   const dispatch = useDispatch();
 
@@ -44,6 +51,15 @@ export default function UserInfo() {
 
   const onClickLogout = () => {
     dispatch(logoutUser());
+  };
+
+  const handleSettingsClick = () => {
+    setSettingsOpen(true);
+    handleClose();
+  };
+
+  const handleSettingsClose = () => {
+    setSettingsOpen(false);
   };
 
   const initials = userInfo.firstName[0] + userInfo.lastName[0];
@@ -74,7 +90,7 @@ export default function UserInfo() {
           />
           {t('home.navigation.userInfo.menuItem.profile')}
         </MenuItem>
-        <MenuItem>
+        <MenuItem button onClick={handleSettingsClick}>
           <SettingsOutlined
             className={classes.userInfoMenuItemIcon}
             fontSize="small"
@@ -99,6 +115,17 @@ export default function UserInfo() {
       <IconButton className={classes.userInfoAddButton} size="small">
         <Add />
       </IconButton>
+      <Dialog
+        open={settingsOpen}
+        // className={classes.modal}
+        onClose={handleSettingsClose}
+        maxWidth="lg"
+      >
+        <DialogTitle>Settings</DialogTitle>
+        <DialogContent>
+          <SettingsModal />
+        </DialogContent>
+      </Dialog>
     </Box>
   );
 }

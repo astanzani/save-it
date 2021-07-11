@@ -63,6 +63,7 @@ pub struct BookmarkRequestWithCreatorId {
     pub url: String,
     pub creator_id: String,
     pub metadata: ParsedMetadata,
+    pub created_at: i64,
 }
 
 #[derive(Deserialize, Serialize, Clone)]
@@ -72,6 +73,7 @@ pub struct BookmarkResponse {
     pub url: String,
     pub creator_id: String,
     pub metadata: ParsedMetadata,
+    pub created_at: i64,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -82,6 +84,7 @@ pub struct BookmarkDB {
     pub url: String,
     pub creator_id: String,
     pub metadata: ParsedMetadata,
+    pub created_at: i64,
 }
 
 #[derive(Deserialize, Serialize, Message)]

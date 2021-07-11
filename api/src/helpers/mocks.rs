@@ -74,6 +74,7 @@ impl BookmarksServiceTrait for BookmarksServiceMock {
                 description: None,
                 image: None,
             },
+            created_at: 0,
         });
 
         Ok(results)
