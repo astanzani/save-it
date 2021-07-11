@@ -213,7 +213,8 @@ mod tests {
                     "title": null,
                     "description": null,
                     "image": null,
-                })
+                }),
+                "createdAt": 0,
             }])),
             json
         );
