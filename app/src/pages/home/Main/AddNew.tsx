@@ -21,7 +21,6 @@ const INITIAL_STATE = 'https://';
 
 export default function AddNew() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [file, setFile] = useState<File | undefined>();
   const [url, setUrl] = useState(INITIAL_STATE);
   const { t } = useTranslation();
   const dispatch = useDispatch();
@@ -45,8 +44,6 @@ export default function AddNew() {
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setFile(e.target.files[0]);
-
       const reader = new FileReader();
       reader.onload = async (event) => {
         const result = event.target?.result;

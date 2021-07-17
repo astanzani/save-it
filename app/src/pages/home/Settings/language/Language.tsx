@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { FormControl, MenuItem, Select, Typography } from '@material-ui/core';
 import { Locale, RootState } from 'types';
 import { actions as settingsActions } from 'store/settings';

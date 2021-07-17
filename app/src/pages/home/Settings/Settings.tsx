@@ -1,5 +1,5 @@
 import React, { forwardRef, useState } from 'react';
-import { Box, Typography, Paper, Divider, Tabs, Tab } from '@material-ui/core';
+import { Box, Tabs, Tab } from '@material-ui/core';
 import General from './General';
 import useStyles from './styles';
 

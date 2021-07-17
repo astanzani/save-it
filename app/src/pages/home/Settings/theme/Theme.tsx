@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { FormControl, Typography, RadioGroup } from '@material-ui/core';
 import { RootState, ThemeVariant } from 'types';
 import { useDispatch, useSelector } from 'react-redux';
