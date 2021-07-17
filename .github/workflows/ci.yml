@@ -23,9 +23,22 @@ jobs:
       - name: Run tests
         run: cargo test --manifest-path ./api/Cargo.toml --verbose
 
+  app:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - name: Install
+        run: yarn --cwd app install
+      - name: Run tests
+        run: yarn app:test
+
   deploy:
     runs-on: ubuntu-latest
-    needs: [api]
+    needs: [api, app]
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Configure AWS credentials

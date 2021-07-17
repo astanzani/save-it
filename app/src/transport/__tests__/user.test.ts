@@ -24,16 +24,10 @@ describe('User Transport', () => {
 
     await userTransport.login('email', 'password');
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      '/api/v1/users/login',
-      'POST',
-      { email: 'email', password: 'password' },
-      false
-    );
-    expect(setStorageItem).toBeCalledWith(
-      'x-auth-token',
-      'received-auth-token'
-    );
+    expect(fetchMock).toHaveBeenCalledWith('/api/v1/users/login', 'POST', {
+      email: 'email',
+      password: 'password',
+    });
   });
 
   it('throws if wrong email / password', async () => {
@@ -70,9 +64,9 @@ describe('User Transport', () => {
     expect(res.lastName).toBe('Last');
   });
 
-  it('logouts current user', async () => {
+  it('logs out current user', async () => {
     await userTransport.logout();
-    expect(deleteStorageItem).toBeCalledWith('x-auth-token');
+    expect(fetchMock).toHaveBeenCalledWith('/api/v1/users/logout', 'POST');
   });
 
   it('registers an user', async () => {
@@ -84,11 +78,6 @@ describe('User Transport', () => {
       password: 'pass',
     };
     await userTransport.register(user);
-    expect(fetchMock).toBeCalledWith(
-      '/api/v1/users/register',
-      'POST',
-      user,
-      false
-    );
+    expect(fetchMock).toBeCalledWith('/api/v1/users/register', 'POST', user);
   });
 });

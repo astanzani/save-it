@@ -27,7 +27,6 @@ describe('Fetch', () => {
         headers: {
           map: expect.objectContaining({
             'content-type': 'application/json',
-            authorization: 'mock-auth-token',
           }),
         },
       })
@@ -45,12 +44,5 @@ describe('Fetch', () => {
         body: JSON.stringify(payload),
       })
     );
-  });
-
-  it('does not passes authorization header when withCredentials is false', async () => {
-    await fetchWrapper('some-url', undefined, undefined, false);
-    const args = (mockFetch as jest.Mock).mock.calls[0][1] as any;
-
-    expect(args.headers.map['authorization']).toBeUndefined();
   });
 });
