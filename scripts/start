@@ -1,4 +1,3 @@
 #!/bin/bash
 source /home/ec2-user/.bash_profile
-cd /home/ec2-user/app/
-./api/target/release/save-it-api-v2
+sudo systemctl restart save-it-server.service
