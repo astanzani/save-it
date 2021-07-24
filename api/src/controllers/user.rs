@@ -5,6 +5,7 @@ use actix_web::{
 use bcrypt;
 use mongodb::error::ErrorKind;
 
+use crate::errors::user::UserApiError;
 use crate::helpers::jwt::generate_jwt;
 use crate::middlewares::auth::AuthorizedUser;
 use crate::server::AppState;
@@ -54,47 +55,48 @@ async fn register_user(
 async fn login_user(
     data: web::Data<AppState>,
     login_info: web::Json<LoginRequest>,
-) -> HttpResponse {
+) -> Result<HttpResponse, UserApiError> {
     let user_service = &data.services_container.user_service.lock().unwrap();
     let login_info = login_info.into_inner();
     let email = login_info.email;
     let password = login_info.password;
 
+    if email.is_empty() || password.is_empty() {
+        return Err(UserApiError::BadLoginRequest);
+    }
+
     let on_user_found = |id, hashed_password| {
-        let authenticated = bcrypt::verify(password, hashed_password).unwrap();
+        let authenticated =
+            bcrypt::verify(password, hashed_password).map_err(|_| UserApiError::Unknown)?;
 
         match authenticated {
             true => {
-                let token = generate_jwt(id);
-                match token {
-                    Ok(token) => {
-                        let auth_cookie = build_auth_cookie(&token);
-                        HttpResponse::Ok()
-                            .header("x-auth-token", token.clone())
-                            .cookie(auth_cookie)
-                            .finish()
-                    }
-                    Err(_) => HttpResponse::InternalServerError().finish(),
-                }
+                let token = generate_jwt(id).map_err(|_| UserApiError::Unknown)?;
+
+                let auth_cookie = build_auth_cookie(&token);
+                Ok(HttpResponse::NoContent()
+                    .header("x-auth-token", token.clone())
+                    .cookie(auth_cookie)
+                    .finish())
             }
-            false => HttpResponse::Unauthorized().finish(),
+            false => Err(UserApiError::WrongLoginInfo),
         }
     };
 
-    let result = user_service.get_by_email(&email).await;
+    let result = user_service
+        .get_by_email(&email)
+        .await
+        .map_err(|_| UserApiError::Unknown)?;
 
     match result {
-        Ok(result) => match result {
-            FindOneResult::Found(user) => {
-                let hashed_password = user_service
-                    .get_hashed_password(&user.id.to_string())
-                    .await
-                    .unwrap();
-                on_user_found(&user.id.to_string(), &hashed_password)
-            }
-            FindOneResult::NotFound => HttpResponse::Unauthorized().finish(),
-        },
-        _ => HttpResponse::InternalServerError().finish(),
+        FindOneResult::Found(user) => {
+            let hashed_password = user_service
+                .get_hashed_password(&user.id.to_string())
+                .await
+                .unwrap();
+            on_user_found(&user.id.to_string(), &hashed_password)
+        }
+        FindOneResult::NotFound => Err(UserApiError::WrongLoginInfo),
     }
 }
 
@@ -183,7 +185,7 @@ mod tests {
 
         let response = login_user(data, json).await;
 
-        assert_eq!(response.status(), http::StatusCode::OK);
+        assert_eq!(response.unwrap().status(), http::StatusCode::OK);
     }
 
     #[actix_rt::test]
