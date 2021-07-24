@@ -1,0 +1,14 @@
+{
+  "name": "e2e",
+  "version": "E2E tests for the save-it app",
+  "main": "index.js",
+  "author": "Arnaldo Stanzani",
+  "license": "MIT",
+  "scripts": {
+    "e2e": "yarn run cypress run --spec 'cypress/integration/test/test.ts'"
+  },
+  "devDependencies": {
+    "cypress": "^7.7.0",
+    "typescript": "^4.1.2"
+  }
+}
