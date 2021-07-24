@@ -23,3 +23,29 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+
+declare namespace Cypress {
+  interface Chainable {
+    /**
+     * Custom command to select DOM element by data-cy attribute.
+     * @example cy.dataCy('greeting')
+     */
+    loginByApi(email: string, password: string): Chainable<Element>;
+  }
+}
+
+Cypress.Commands.add('loginByApi', (email: string, password: string) => {
+  cy.request('POST', 'http://localhost:8080/api/v1/users/login', {
+    email,
+    password,
+  }).then(() => {
+    cy.request('http://localhost:8080/api/v1/users/current').then(
+      (response) => {
+        window.localStorage.setItem(
+          'current-user',
+          JSON.stringify(response.body)
+        );
+      }
+    );
+  });
+});

@@ -5,7 +5,7 @@
   "author": "Arnaldo Stanzani",
   "license": "MIT",
   "scripts": {
-    "e2e": "yarn run cypress run --spec 'cypress/integration/test/test.ts'"
+    "e2e": "yarn run cypress run"
   },
   "devDependencies": {
     "cypress": "^7.7.0",

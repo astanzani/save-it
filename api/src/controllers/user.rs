@@ -185,7 +185,7 @@ mod tests {
 
         let response = login_user(data, json).await;
 
-        assert_eq!(response.unwrap().status(), http::StatusCode::OK);
+        assert_eq!(response.unwrap().status(), http::StatusCode::NO_CONTENT);
     }
 
     #[actix_rt::test]
