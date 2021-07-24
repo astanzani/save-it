@@ -3,6 +3,8 @@ name: ci
 on:
   push:
     branches: [main]
+  pull_request:
+    branches: [release]
   workflow_dispatch:
 
 env:
@@ -18,8 +20,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Build
-        run: cargo build --manifest-path ./api/Cargo.toml --verbose
       - name: Run tests
         run: cargo test --manifest-path ./api/Cargo.toml --verbose
 
@@ -51,10 +51,10 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
-      - name: Install
-        run: yarn
       - name: Increase watchers
         run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+      - name: Install e2e deps
+        run: yarn
       - name: E2E
         run: yarn e2e
 
