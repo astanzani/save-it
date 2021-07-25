@@ -38,7 +38,8 @@
   },
   "scripts": {
     "start": "SET HOST=localhost.save-it-v2.herokuapp.com&& SET HTTPS=true&& react-scripts start",
-    "start-local-api": "react-scripts start",
+    "start-local-api": "SET HTTPS=true&& react-scripts start",
+    "start-local-api-unix": "HTTPS=true react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "coverage": "react-scripts test --coverage",

@@ -4,7 +4,7 @@ import { HTTPMethod } from './types';
 export default async function (
   url: string,
   method: HTTPMethod = HTTPMethod.GET,
-  data?: object,
+  data?: object
 ) {
   let payload: string | undefined;
   if (data) {
@@ -17,6 +17,7 @@ export default async function (
     method,
     body: payload,
     headers,
+    credentials: 'include',
   };
 
   return fetch(url, init);

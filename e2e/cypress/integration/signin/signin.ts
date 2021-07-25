@@ -8,7 +8,7 @@ describe('Sign In flow', () => {
     cy.get('#password').type('rust');
     cy.get('button').contains('Sign In').click();
 
-    cy.get('p', { timeout: 10000 }).contains('Rust User');
+    cy.contains('p', 'Rust User', { timeout: 10000 });
   });
 
   it('Shows an error if email / password are incorrect', () => {

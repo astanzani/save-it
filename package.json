@@ -13,10 +13,10 @@
     "app:start-local-api": "yarn --cwd app start-local-api",
     "app:test": "yarn --cwd app test --watchAll=false",
     "api:start-e2e": "cargo run --manifest-path api/Cargo.toml",
-    "app:start-e2e": "yarn --cwd app install && yarn --cwd app start-local-api",
+    "app:start-e2e": "yarn --cwd app install && yarn --cwd app start-local-api-unix",
     "start:all": "npm-run-all --parallel api:start-e2e app:start-e2e",
     "cy:run": "yarn --cwd e2e install && yarn --cwd e2e e2e",
-    "e2e": "start-test api:start-e2e http-get://localhost:8080/api/v1/healthcheck app:start-e2e 3000 cy:run",
+    "e2e": "start-test api:start-e2e http-get://localhost:8080/api/v1/healthcheck app:start-e2e https://localhost:3000 cy:run",
     "poste2e": "kill-port 3000"
   },
   "dependencies": {},
