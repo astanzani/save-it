@@ -5,7 +5,7 @@
   "author": "Arnaldo Stanzani",
   "license": "MIT",
   "scripts": {
-    "e2e": "yarn run cypress run"
+    "e2e": "yarn run cypress run --record --key afd34fbf-35c4-4329-a56e-3ab6e73f55e3"
   },
   "devDependencies": {
     "cypress": "^7.7.0",
