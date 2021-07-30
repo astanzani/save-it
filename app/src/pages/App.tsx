@@ -11,6 +11,7 @@ import { RootState } from 'types';
 const Home = lazy(() => import('./home'));
 const SignUp = lazy(() => import('./signup'));
 const SignIn = lazy(() => import('./signin'));
+const NotFound = lazy(() => import('./notfound'));
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -38,6 +39,9 @@ export default function App() {
             <ProtectedRoute exact path="/">
               <Home />
             </ProtectedRoute>
+            <Route>
+              <NotFound />
+            </Route>
           </Switch>
         </Suspense>
       </Router>
