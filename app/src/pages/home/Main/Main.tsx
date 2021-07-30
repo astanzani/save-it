@@ -6,7 +6,7 @@ import { Bookmark, NavItemKind, RootState, StateStatus } from 'types';
 import BookmarksList from '../Bookmarks/BookmarksList';
 import Search from '../Search/Search';
 import ViewOptions from '../ViewOptions/ViewOptions';
-import { IconByName, DotSeparator } from '../../common';
+import { IconByName, DotSeparator } from '../../../components';
 import Loading from './Loading';
 import AddNew from './AddNew';
 import useStyles from './styles';

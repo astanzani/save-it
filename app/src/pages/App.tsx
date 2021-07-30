@@ -1,14 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { CssBaseline } from '@material-ui/core';
 import { useTranslation } from 'react-i18next';
 import { ThemeProvider } from '@material-ui/core';
 import { baseTheme, darkTheme } from '../themes';
-import { SignIn } from './signin';
-import { Home } from './home';
-import { ProtectedRoute } from './common';
+import { ProtectedRoute } from '../components';
 import { useSelector } from 'react-redux';
 import { RootState } from 'types';
+
+const Home = lazy(() => import('./home'));
+const SignUp = lazy(() => import('./signup'));
+const SignIn = lazy(() => import('./signin'));
 
 export default function App() {
   const { i18n } = useTranslation();
@@ -25,14 +27,19 @@ export default function App() {
     <ThemeProvider theme={theme === 'dark' ? darkTheme : baseTheme}>
       <Router>
         <CssBaseline />
-        <Switch>
-          <Route path="/signin">
-            <SignIn />
-          </Route>
-          <ProtectedRoute exact path="/">
-            <Home />
-          </ProtectedRoute>
-        </Switch>
+        <Suspense fallback={<div>loading...</div>}>
+          <Switch>
+            <Route path="/signin">
+              <SignIn />
+            </Route>
+            <Route path="/signup">
+              <SignUp />
+            </Route>
+            <ProtectedRoute exact path="/">
+              <Home />
+            </ProtectedRoute>
+          </Switch>
+        </Suspense>
       </Router>
     </ThemeProvider>
   );

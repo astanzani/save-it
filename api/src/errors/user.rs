@@ -6,6 +6,8 @@ use thiserror::Error;
 pub enum UserApiError {
     #[error("Invalid 'email' or 'password'")]
     BadLoginRequest,
+    #[error("Invalid user info")]
+    BadRegisterRequest,
     #[error("Wrong email or password")]
     WrongLoginInfo,
     #[error("Unknown error")]
@@ -17,6 +19,7 @@ impl UserApiError {
         match self {
             Self::WrongLoginInfo => "WrongLoginInfo".to_string(),
             Self::BadLoginRequest => "BadLoginRequest".to_string(),
+            Self::BadRegisterRequest => "BadRegisterRequest".to_string(),
             Self::Unknown => "Unknown".to_string(),
         }
     }
@@ -34,6 +37,7 @@ impl ResponseError for UserApiError {
         match *self {
             Self::WrongLoginInfo => StatusCode::UNAUTHORIZED,
             Self::BadLoginRequest => StatusCode::BAD_REQUEST,
+            Self::BadRegisterRequest => StatusCode::BAD_REQUEST,
             Self::Unknown => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

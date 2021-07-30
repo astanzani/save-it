@@ -3,7 +3,6 @@ use actix_web::{
     web, HttpResponse,
 };
 use bcrypt;
-use mongodb::error::ErrorKind;
 
 use crate::errors::user::UserApiError;
 use crate::helpers::jwt::generate_jwt;
@@ -21,35 +20,33 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 async fn register_user(
     data: web::Data<AppState>,
     user: web::Json<RegisterUserRequest>,
-) -> HttpResponse {
-    let on_success = |inserted_id: &str| {
-        let token = generate_jwt(inserted_id);
-        match token {
-            Ok(token) => {
-                let auth_cookie = build_auth_cookie(&token);
-                HttpResponse::Created()
-                    .header("x-auth-token", token.clone())
-                    .cookie(auth_cookie)
-                    .finish()
-            }
-            Err(_) => HttpResponse::InternalServerError().finish(),
-        }
-    };
-
+) -> Result<HttpResponse, UserApiError> {
     let mut user_info = user.into_inner();
-    let hashed_pass = bcrypt::hash(user_info.password, 10).unwrap();
+
+    if user_info.email.is_empty()
+        || user_info.email.is_empty()
+        || user_info.password.is_empty()
+        || user_info.first_name.is_empty()
+        || user_info.last_name.is_empty()
+    {
+        return Err(UserApiError::BadRegisterRequest);
+    }
+
+    let hashed_pass = bcrypt::hash(user_info.password, 10).map_err(|_| UserApiError::Unknown)?;
     user_info.password = hashed_pass;
 
     let user_service = &data.services_container.user_service.lock().unwrap();
-    let insert_result = user_service.create(user_info).await;
+    let inserted_id = user_service
+        .create(user_info)
+        .await
+        .map_err(|_| UserApiError::Unknown)?;
 
-    match insert_result {
-        Ok(inserted_id) => on_success(&inserted_id),
-        Err(err) => match err.kind.as_ref() {
-            ErrorKind::WriteError(_) => HttpResponse::BadRequest().finish(),
-            _ => HttpResponse::InternalServerError().finish(),
-        },
-    }
+    let token = generate_jwt(&inserted_id).map_err(|_| UserApiError::Unknown)?;
+    let auth_cookie = build_auth_cookie(&token);
+    Ok(HttpResponse::Created()
+        .header("x-auth-token", token.clone())
+        .cookie(auth_cookie)
+        .finish())
 }
 
 async fn login_user(
@@ -159,7 +156,7 @@ mod tests {
 
         let json = web::Json(user);
 
-        let response = register_user(data, json).await;
+        let response = register_user(data, json).await.unwrap();
 
         let auth_cookie = response.cookies().find(|c| c.name() == "authorization");
         let auth_header = response.headers().get("x-auth-token");

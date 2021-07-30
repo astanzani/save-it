@@ -1,31 +1,35 @@
 import React from 'react';
 import {
   Box,
-  Button,
-  CircularProgress,
+  Link as MuiLink,
   InputAdornment,
   TextField,
   Typography,
 } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import { AlternateEmailOutlined, LockOpen } from '@material-ui/icons';
-import { Redirect } from 'react-router-dom';
+import { Redirect, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import classNames from 'classnames';
 import { Formik } from 'formik';
-import * as Yup from 'yup';
 
 import { ReactComponent as SignInSVG } from 'assets/sign_in.svg';
 import { Routes } from 'const';
 import { loginUser } from 'store';
 import { useAuth, useCurrentUser } from 'hooks';
+import { LoadingButton } from 'components';
 import useStyles from './styles';
 
-const signInSchema = Yup.object().shape({
-  email: Yup.string().required(),
-  password: Yup.string().required(),
-});
+interface FormData {
+  email: string;
+  password: string;
+}
+
+interface FormDataErrors {
+  email?: string;
+  password?: string;
+}
 
 export function SignIn() {
   const dispatch = useDispatch();
@@ -42,19 +46,40 @@ export function SignIn() {
     return <Redirect to={Routes.HOME} />;
   }
 
+  const validate = (values: FormData) => {
+    let errors: FormDataErrors = {};
+
+    if (values.email.trim() === '') {
+      errors.email = t('signIn.form.error.email');
+    }
+    if (values.password.trim() === '') {
+      errors.password = t('signIn.form.error.password');
+    }
+
+    return errors;
+  };
+
   return (
     <Box display="flex" flex="1">
       <Formik
         initialValues={{ email: '', password: '' }}
-        validationSchema={signInSchema}
         onSubmit={(values) => {
           dispatch(
             loginUser({ email: values.email, password: values.password })
           );
         }}
-        validateOnMount
+        validateOnMount={true}
+        validateOnBlur={true}
+        validate={validate}
       >
-        {({ handleChange, handleSubmit, isValid }) => (
+        {({
+          handleChange,
+          handleBlur,
+          handleSubmit,
+          isValid,
+          errors,
+          touched,
+        }) => (
           <Box
             component="form"
             display="flex"
@@ -83,9 +108,15 @@ export function SignIn() {
               name="email"
               className={classes.formInput}
               variant="outlined"
-              label={t('signIn.form.email')}
+              label={
+                errors.email && touched.email
+                  ? errors.email
+                  : t('signIn.form.email')
+              }
+              error={!!errors.email && touched.email}
               type="email"
               onChange={handleChange}
+              onBlur={handleBlur}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -100,9 +131,15 @@ export function SignIn() {
               name="password"
               className={classes.formInput}
               variant="outlined"
-              label={t('signIn.form.password')}
+              label={
+                errors.password && touched.password
+                  ? errors.password
+                  : t('signIn.form.password')
+              }
+              error={!!errors.password && touched.password}
               type="password"
               onChange={handleChange}
+              onBlur={handleBlur}
               InputProps={{
                 startAdornment: (
                   <InputAdornment position="start">
@@ -112,23 +149,32 @@ export function SignIn() {
               }}
               placeholder={t('signIn.form.password')}
             />
-            <Button
+            <LoadingButton
               variant="contained"
               color="primary"
               size="large"
               disabled={!isValid}
               type="submit"
+              loading={loading}
             >
-              {loading ? (
-                <CircularProgress
-                  color="secondary"
-                  size={32}
-                  className={classes.spinner}
-                />
-              ) : (
-                t('signIn.form.signIn')
-              )}
-            </Button>
+              {t('signIn.form.signIn')}
+            </LoadingButton>
+            <Box display="flex" padding={4}>
+              <Link
+                to={Routes.SIGN_UP}
+                component={MuiLink}
+                className={classes.signUpLink}
+              >
+                Create an account
+              </Link>
+              <Link
+                to={Routes.FORGOT_PASSWORD}
+                component={MuiLink}
+                className={classes.forgotPassword}
+              >
+                Forgot your password?
+              </Link>
+            </Box>
             <Alert
               variant="outlined"
               severity="error"
@@ -140,7 +186,7 @@ export function SignIn() {
         )}
       </Formik>
       <Box display="flex" alignItems="center" flex="1">
-        <SignInSVG title={''} />
+        <SignInSVG title={''} width="100%" height="100%" />
       </Box>
     </Box>
   );
