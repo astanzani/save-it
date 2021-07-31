@@ -3,9 +3,11 @@ use std::{env, sync::Mutex};
 use async_trait::async_trait;
 use mongodb::{self, error::Error, Database};
 
+use super::password_reset::PasswordResetToken;
+use crate::services::users::UsersServiceError;
 use crate::{
     server::ServicesContainer,
-    services::{bookmarks::BookmarksServiceTrait, users::UsersServiceTrait},
+    services::{bookmarks::BookmarksServiceTrait, email::EmailService, users::UsersServiceTrait},
     types::{
         BookmarkRequestWithCreatorId, BookmarkResponse, FindOneResult, ParsedMetadata,
         RegisterUserRequest, UserResponse,
@@ -45,6 +47,14 @@ impl UsersServiceTrait for UserServiceMock {
         Ok(String::from(
             "$2y$10$Ojl6IKvw5yu2Zpbq921cNOpb7couXgkI8Q28iyZSFFeGHphdgIhEG",
         ))
+    }
+
+    async fn update_reset_password_token(
+        &self,
+        email: &str,
+        token: Option<PasswordResetToken>,
+    ) -> Result<(), UsersServiceError> {
+        Ok(())
     }
 }
 
@@ -87,6 +97,7 @@ pub fn get_services_mock() -> ServicesContainer {
     ServicesContainer {
         user_service: Mutex::new(Box::new(UserServiceMock {})),
         bookmarks_service: Mutex::new(Box::new(BookmarksServiceMock {})),
+        email_service: Mutex::new(EmailService {}),
     }
 }
 

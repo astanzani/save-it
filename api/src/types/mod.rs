@@ -2,6 +2,8 @@ use actix::prelude::*;
 use mongodb::bson::oid::ObjectId;
 use serde::{Deserialize, Serialize};
 
+use crate::helpers::password_reset::PasswordResetToken;
+
 #[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RegisterUserRequest {
@@ -29,6 +31,11 @@ pub struct LoginRequest {
 }
 
 #[derive(Deserialize, Serialize)]
+pub struct ForgotPasswordRequest {
+    pub email: String,
+}
+
+#[derive(Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserDB {
     #[serde(rename = "_id")]
@@ -38,6 +45,7 @@ pub struct UserDB {
     pub display_name: String,
     pub email: String,
     pub password: String,
+    pub reset_password_token: Option<PasswordResetToken>,
 }
 
 pub enum FindOneResult<T> {

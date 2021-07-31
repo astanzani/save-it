@@ -4,8 +4,16 @@ use mongodb::{
     error::Error,
     Collection,
 };
+use thiserror::Error;
 
+use crate::helpers::password_reset::{self, PasswordResetToken};
 use crate::types::{FindOneResult, RegisterUserRequest, UserDB, UserResponse};
+
+#[derive(Error, Debug)]
+pub enum UsersServiceError {
+    #[error("Unknown error")]
+    Unknown,
+}
 
 #[async_trait]
 pub trait UsersServiceTrait {
@@ -13,6 +21,11 @@ pub trait UsersServiceTrait {
     async fn get_by_id(&self, id: &str) -> Result<FindOneResult<UserResponse>, Error>;
     async fn get_by_email(&self, email: &str) -> Result<FindOneResult<UserResponse>, Error>;
     async fn get_hashed_password(&self, id: &str) -> Result<String, Error>;
+    async fn update_reset_password_token(
+        &self,
+        email: &str,
+        token: Option<PasswordResetToken>,
+    ) -> Result<(), UsersServiceError>;
 }
 
 pub struct UsersService {
@@ -100,6 +113,40 @@ impl UsersServiceTrait for UsersService {
         let user_doc = result.unwrap();
         let user: UserDB = bson::from_bson(Bson::Document(user_doc)).unwrap();
         Ok(user.password)
+    }
+
+    async fn update_reset_password_token(
+        &self,
+        email: &str,
+        token: Option<PasswordResetToken>,
+    ) -> Result<(), UsersServiceError> {
+        match token {
+            Some(token) => {
+                self.collection
+                    .update_one(
+                        doc! { "email": email },
+                        doc! {"$set": {"reset_password_token": bson::to_bson(&token)
+                        .map_err(|_| UsersServiceError::Unknown)?}},
+                        None,
+                    )
+                    .await
+                    .map_err(|_| UsersServiceError::Unknown)?;
+
+                Ok(())
+            }
+            None => {
+                self.collection
+                    .update_one(
+                        doc! { "email": email },
+                        doc! {"$unset": "reset_password_token"},
+                        None,
+                    )
+                    .await
+                    .map_err(|_| UsersServiceError::Unknown)?;
+
+                Ok(())
+            }
+        }
     }
 }
 

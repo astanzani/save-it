@@ -9,6 +9,8 @@ pub enum UserApiError {
     #[error("Invalid user info")]
     BadRegisterRequest,
     #[error("Wrong email or password")]
+    BadForgotPasswordRequest,
+    #[error("No account associated with this email")]
     WrongLoginInfo,
     #[error("Unknown error")]
     Unknown,
@@ -20,6 +22,7 @@ impl UserApiError {
             Self::WrongLoginInfo => "WrongLoginInfo".to_string(),
             Self::BadLoginRequest => "BadLoginRequest".to_string(),
             Self::BadRegisterRequest => "BadRegisterRequest".to_string(),
+            Self::BadForgotPasswordRequest => "BadForgotPasswordRequest".to_string(),
             Self::Unknown => "Unknown".to_string(),
         }
     }
@@ -38,6 +41,7 @@ impl ResponseError for UserApiError {
             Self::WrongLoginInfo => StatusCode::UNAUTHORIZED,
             Self::BadLoginRequest => StatusCode::BAD_REQUEST,
             Self::BadRegisterRequest => StatusCode::BAD_REQUEST,
+            Self::BadForgotPasswordRequest => StatusCode::BAD_REQUEST,
             Self::Unknown => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

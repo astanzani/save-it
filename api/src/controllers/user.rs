@@ -1,20 +1,22 @@
 use actix_web::{
     cookie::{Cookie, CookieBuilder, SameSite},
-    web, HttpResponse,
+    dev::ConnectionInfo,
+    web, HttpRequest, HttpResponse,
 };
 use bcrypt;
 
-use crate::errors::user::UserApiError;
-use crate::helpers::jwt::generate_jwt;
+use crate::helpers::{jwt::generate_jwt, password_reset::generate_password_reset_token};
 use crate::middlewares::auth::AuthorizedUser;
 use crate::server::AppState;
 use crate::types::{FindOneResult, LoginRequest, RegisterUserRequest};
+use crate::{errors::user::UserApiError, types::ForgotPasswordRequest};
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(web::resource("/users/register").route(web::post().to(register_user)));
     cfg.service(web::resource("/users/login").route(web::post().to(login_user)));
     cfg.service(web::resource("/users/current").route(web::get().to(get_current_user)));
     cfg.service(web::resource("/users/logout").route(web::post().to(logout)));
+    cfg.service(web::resource("/users/forgotpassword").route(web::post().to(forgot_password)));
 }
 
 async fn register_user(
@@ -121,6 +123,44 @@ async fn logout() -> HttpResponse {
         .path("/")
         .finish();
     HttpResponse::NoContent().cookie(auth_cookie).finish()
+}
+
+async fn forgot_password(
+    req: HttpRequest,
+    data: web::Data<AppState>,
+    forgot_password_info: web::Json<ForgotPasswordRequest>,
+) -> Result<HttpResponse, UserApiError> {
+    let user_service = &data.services_container.user_service.lock().unwrap();
+    let email_service = &data.services_container.email_service.lock().unwrap();
+
+    let user_result = user_service
+        .get_by_email(&forgot_password_info.email)
+        .await
+        .map_err(|_| UserApiError::Unknown)?;
+
+    match user_result {
+        FindOneResult::NotFound => Err(UserApiError::BadForgotPasswordRequest),
+        FindOneResult::Found(_user) => {
+            let token = generate_password_reset_token().map_err(|_| UserApiError::Unknown)?;
+            user_service
+                .update_reset_password_token(&forgot_password_info.email, Some(token.clone()))
+                .await
+                .map_err(|_| UserApiError::Unknown)?;
+
+            let conn_info = req.connection_info();
+            let host = conn_info.host();
+
+            email_service
+                .send_forgot_password_email(&forgot_password_info.email, token.clone(), host)
+                .map_err(|err| match err {
+                    _ => UserApiError::Unknown,
+                })?;
+
+            Ok(HttpResponse::Ok().finish())
+        }
+    }
+
+    // Ok(HttpResponse::Ok().finish())
 }
 
 fn build_auth_cookie<'a>(token: &'a str) -> Cookie<'a> {

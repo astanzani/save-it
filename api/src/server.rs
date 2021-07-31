@@ -5,6 +5,7 @@ use std::{env, io, path::PathBuf, sync::Mutex};
 
 use crate::controllers;
 use crate::loaders;
+use crate::services::email::EmailService;
 use crate::services::{
     bookmarks::{BookmarksService, BookmarksServiceTrait},
     users::{UsersService, UsersServiceTrait},
@@ -17,6 +18,7 @@ const BOOKMARKS_COLLECTION: &str = "Bookmarks";
 pub struct ServicesContainer {
     pub user_service: Mutex<Box<dyn UsersServiceTrait>>,
     pub bookmarks_service: Mutex<Box<dyn BookmarksServiceTrait>>,
+    pub email_service: Mutex<EmailService>,
 }
 
 pub struct AppState {
@@ -42,6 +44,7 @@ pub async fn start() -> io::Result<()> {
             bookmarks_service: Mutex::new(Box::new(BookmarksService::new(
                 bookmarks_collection.clone(),
             ))),
+            email_service: Mutex::new(EmailService {}),
         };
 
         App::new()
