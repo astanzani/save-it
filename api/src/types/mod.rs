@@ -36,6 +36,13 @@ pub struct ForgotPasswordRequest {
 }
 
 #[derive(Deserialize, Serialize)]
+pub struct ResetPasswordRequest {
+    pub email: String,
+    pub password: String,
+    pub token: String,
+}
+
+#[derive(Deserialize, Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct UserDB {
     #[serde(rename = "_id")]

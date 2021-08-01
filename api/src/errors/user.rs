@@ -6,12 +6,22 @@ use thiserror::Error;
 pub enum UserApiError {
     #[error("Invalid 'email' or 'password'")]
     BadLoginRequest,
+
     #[error("Invalid user info")]
     BadRegisterRequest,
-    #[error("Wrong email or password")]
-    BadForgotPasswordRequest,
+
     #[error("No account associated with this email")]
+    BadForgotPasswordRequest,
+
+    #[error("Invalid 'email' or 'password'")]
+    BadResetPasswordRequest,
+
+    #[error("Wrong email or password")]
     WrongLoginInfo,
+
+    #[error("Your password reset request has expired")]
+    ExpiredResetPasswordToken,
+
     #[error("Unknown error")]
     Unknown,
 }
@@ -23,6 +33,8 @@ impl UserApiError {
             Self::BadLoginRequest => "BadLoginRequest".to_string(),
             Self::BadRegisterRequest => "BadRegisterRequest".to_string(),
             Self::BadForgotPasswordRequest => "BadForgotPasswordRequest".to_string(),
+            Self::BadResetPasswordRequest => "BadResetPasswordRequest".to_string(),
+            Self::ExpiredResetPasswordToken => "ExpiredResetPasswordToken".to_string(),
             Self::Unknown => "Unknown".to_string(),
         }
     }
@@ -42,6 +54,8 @@ impl ResponseError for UserApiError {
             Self::BadLoginRequest => StatusCode::BAD_REQUEST,
             Self::BadRegisterRequest => StatusCode::BAD_REQUEST,
             Self::BadForgotPasswordRequest => StatusCode::BAD_REQUEST,
+            Self::BadResetPasswordRequest => StatusCode::BAD_REQUEST,
+            Self::ExpiredResetPasswordToken => StatusCode::FORBIDDEN,
             Self::Unknown => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

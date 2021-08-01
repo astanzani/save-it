@@ -1,5 +1,11 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { login, getCurrentUser, logout, register } from 'transport';
+import {
+  login,
+  getCurrentUser,
+  logout,
+  register,
+  forgotPassword as forgotPasswordReq,
+} from 'transport';
 import { User } from 'types';
 import { deleteStorageItem, setStorageItem } from 'utils';
 
@@ -46,6 +52,13 @@ export const signUpUser = createAsyncThunk(
   }
 );
 
+export const forgotPassword = createAsyncThunk(
+  'user/forgotPassword',
+  async (payload: string) => {
+    return forgotPasswordReq(payload);
+  }
+);
+
 const user = createSlice({
   name: 'User',
   initialState: { info: undefined, loading: false, error: undefined } as State,
@@ -75,6 +88,17 @@ const user = createSlice({
       state.loading = true;
     });
     builder.addCase(signUpUser.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.error.message;
+    });
+    builder.addCase(forgotPassword.fulfilled, (state, action) => {
+      state.loading = false;
+      state.error = undefined;
+    });
+    builder.addCase(forgotPassword.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(forgotPassword.rejected, (state, action) => {
       state.loading = false;
       state.error = action.error.message;
     });

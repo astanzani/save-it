@@ -35,12 +35,14 @@ export function SignIn() {
   const dispatch = useDispatch();
   const [, loading, error] = useCurrentUser();
   const isAuthenticated = useAuth();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const classes = useStyles();
 
   const alertClassName = classNames(classes.errorAlert, {
     [classes.errorAlertVisible]: !!error,
   });
+
+  console.log(i18n);
 
   if (isAuthenticated) {
     return <Redirect to={Routes.HOME} />;
@@ -50,10 +52,10 @@ export function SignIn() {
     let errors: FormDataErrors = {};
 
     if (values.email.trim() === '') {
-      errors.email = t('signIn.form.error.email');
+      errors.email = t('signin:form.error.email');
     }
     if (values.password.trim() === '') {
-      errors.password = t('signIn.form.error.password');
+      errors.password = t('signin:form.error.password');
     }
 
     return errors;
@@ -93,7 +95,7 @@ export function SignIn() {
             }}
           >
             <Typography variant="h4" component="h1" className={classes.title}>
-              {t('signIn.welcome')}
+              {t('signin:welcome')}
             </Typography>
             <Typography
               variant="h5"
@@ -101,7 +103,7 @@ export function SignIn() {
               className={classes.title}
               color="textSecondary"
             >
-              {t('signIn.signInToContinue')}
+              {t('signin:signInToContinue')}
             </Typography>
             <TextField
               id="email"
@@ -111,7 +113,7 @@ export function SignIn() {
               label={
                 errors.email && touched.email
                   ? errors.email
-                  : t('signIn.form.email')
+                  : t('signin:form.email')
               }
               error={!!errors.email && touched.email}
               type="email"
@@ -124,7 +126,7 @@ export function SignIn() {
                   </InputAdornment>
                 ),
               }}
-              placeholder={t('signIn.form.email')}
+              placeholder={t('signin:form.email')}
             />
             <TextField
               id="password"
@@ -134,7 +136,7 @@ export function SignIn() {
               label={
                 errors.password && touched.password
                   ? errors.password
-                  : t('signIn.form.password')
+                  : t('signin:form.password')
               }
               error={!!errors.password && touched.password}
               type="password"
@@ -147,7 +149,7 @@ export function SignIn() {
                   </InputAdornment>
                 ),
               }}
-              placeholder={t('signIn.form.password')}
+              placeholder={t('signin:form.password')}
             />
             <LoadingButton
               variant="contained"
@@ -157,7 +159,7 @@ export function SignIn() {
               type="submit"
               loading={loading}
             >
-              {t('signIn.form.signIn')}
+              {t('signin:form.signIn')}
             </LoadingButton>
             <Box display="flex" padding={4}>
               <Link
@@ -165,14 +167,14 @@ export function SignIn() {
                 component={MuiLink}
                 className={classes.signUpLink}
               >
-                Create an account
+                {t('signin:form.createAccount')}
               </Link>
               <Link
                 to={Routes.FORGOT_PASSWORD}
                 component={MuiLink}
                 className={classes.forgotPassword}
               >
-                Forgot your password?
+                {t('signin:form.forgotPassword')}
               </Link>
             </Box>
             <Alert

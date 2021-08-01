@@ -57,16 +57,16 @@ export const SignUp = () => {
     let errors: FormDataErrors = {};
 
     if (!validators.isEmail(values.email)) {
-      errors.email = t('signUp.form.error.email');
+      errors.email = t('signup:form.error.email');
     }
     if (!validators.isStrongPassword(values.password)) {
-      errors.password = t('signUp.form.error.password');
+      errors.password = t('signup:form.error.password');
     }
     if (!validators.isName(values.firstName)) {
-      errors.firstName = t('signUp.form.error.firstName');
+      errors.firstName = t('signup:form.error.firstName');
     }
     if (!validators.isName(values.lastName)) {
-      errors.lastName = t('signUp.form.error.lastName');
+      errors.lastName = t('signup:form.error.lastName');
     }
 
     return errors;
@@ -109,7 +109,7 @@ export const SignUp = () => {
             }}
           >
             <Typography variant="h4" component="h1" className={classes.title}>
-              {t('signUp.welcome')}
+              {t('signup:welcome')}
             </Typography>
             <Typography
               variant="h5"
@@ -117,7 +117,7 @@ export const SignUp = () => {
               className={classes.title}
               color="textSecondary"
             >
-              {t('signUp.createAnAccount')}
+              {t('signup:createAnAccount')}
             </Typography>
             <TextField
               id="first-name"
@@ -127,7 +127,7 @@ export const SignUp = () => {
               label={
                 errors.firstName && touched.firstName
                   ? errors.firstName
-                  : t('signUp.form.firstName')
+                  : t('signup:form.firstName')
               }
               type="text"
               onChange={handleChange}
@@ -139,7 +139,7 @@ export const SignUp = () => {
                   </InputAdornment>
                 ),
               }}
-              placeholder={t('signUp.form.firstName')}
+              placeholder={t('signup:form.firstName')}
               error={!!errors.firstName && !!touched.firstName}
             />
             <TextField
@@ -150,7 +150,7 @@ export const SignUp = () => {
               label={
                 errors.lastName && touched.lastName
                   ? errors.lastName
-                  : t('signUp.form.lastName')
+                  : t('signup:form.lastName')
               }
               type="text"
               onChange={handleChange}
@@ -162,7 +162,7 @@ export const SignUp = () => {
                   </InputAdornment>
                 ),
               }}
-              placeholder={t('signUp.form.lastName')}
+              placeholder={t('signup:form.lastName')}
               error={!!errors.lastName && !!touched.lastName}
             />
             <TextField
@@ -173,7 +173,7 @@ export const SignUp = () => {
               label={
                 errors.email && touched.email
                   ? errors.email
-                  : t('signIn.form.email')
+                  : t('signup:form.email')
               }
               type="email"
               onChange={handleChange}
@@ -185,7 +185,7 @@ export const SignUp = () => {
                   </InputAdornment>
                 ),
               }}
-              placeholder={t('signIn.form.email')}
+              placeholder={t('signup:form.email')}
               error={!!errors.email && touched.email}
             />
             <TextField
@@ -196,7 +196,7 @@ export const SignUp = () => {
               label={
                 errors.password && touched.password
                   ? errors.password
-                  : t('signIn.form.password')
+                  : t('signup:form.password')
               }
               type={showPassword ? 'text' : 'password'}
               onChange={handleChange}
@@ -219,9 +219,9 @@ export const SignUp = () => {
                   </InputAdornment>
                 ),
               }}
-              placeholder={t('signIn.form.password')}
+              placeholder={t('signup:form.password')}
               error={!!errors.password && touched.password}
-              helperText={t('signUp.form.helperText.password')}
+              helperText={t('signup:form.helperText.password')}
             />
             <LoadingButton
               variant="contained"
@@ -231,11 +231,11 @@ export const SignUp = () => {
               type="submit"
               loading={loading}
             >
-              {t('signUp.form.signUp')}
+              {t('signup:form.signUp')}
             </LoadingButton>
             <Box display="flex" padding={4}>
               <Link to={Routes.SIGN_IN} component={MuiLink}>
-                Sign In instead
+                {t('signup:form.signIn')}
               </Link>
             </Box>
           </Box>

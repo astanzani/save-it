@@ -56,6 +56,18 @@ impl UsersServiceTrait for UserServiceMock {
     ) -> Result<(), UsersServiceError> {
         Ok(())
     }
+
+    async fn update_password(&self, email: &str, password: &str) -> Result<(), UsersServiceError> {
+        Ok(())
+    }
+
+    async fn is_reset_password_token_valid(
+        &self,
+        email: &str,
+        token: &str,
+    ) -> Result<bool, UsersServiceError> {
+        Ok(true)
+    }
 }
 
 struct BookmarksServiceMock {}

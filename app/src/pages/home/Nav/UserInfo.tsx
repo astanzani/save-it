@@ -86,28 +86,28 @@ export default function UserInfo() {
             className={classes.userInfoMenuItemIcon}
             fontSize="small"
           />
-          {t('home.navigation.userInfo.menuItem.profile')}
+          {t('home:navigation.userInfo.menuItem.profile')}
         </MenuItem>
         <MenuItem button onClick={handleSettingsClick}>
           <SettingsOutlined
             className={classes.userInfoMenuItemIcon}
             fontSize="small"
           />
-          {t('home.navigation.userInfo.menuItem.settings')}
+          {t('home:navigation.userInfo.menuItem.settings')}
         </MenuItem>
         <MenuItem>
           <WebOutlined
             className={classes.userInfoMenuItemIcon}
             fontSize="small"
           />
-          {t('home.navigation.userInfo.menuItem.browserExtension')}
+          {t('home:navigation.userInfo.menuItem.browserExtension')}
         </MenuItem>
         <MenuItem onClick={onClickLogout}>
           <ExitToAppOutlined
             className={classes.userInfoMenuItemIcon}
             fontSize="small"
           />
-          {t('home.navigation.userInfo.menuItem.signOut')}
+          {t('home:navigation.userInfo.menuItem.signOut')}
         </MenuItem>
       </Menu>
       <IconButton className={classes.userInfoAddButton} size="small">

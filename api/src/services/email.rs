@@ -23,7 +23,7 @@ impl EmailService {
         let from_address = env::var("SENDGRID_FROM").expect("MISSING FROM EMAIL");
         let content = Content::new()
             .set_content_type("text/html")
-            .set_value(email_template(host, &token.token));
+            .set_value(email_template(host, &token.token, &to_address));
         let from = Email::new(from_address);
         let to = Email::new(to_address);
         let personalization = Personalization::new(to);
@@ -39,8 +39,11 @@ impl EmailService {
     }
 }
 
-fn email_template(host: &str, token: &str) -> String {
-    let url = format!("https://{}/forgotpassword?token={}", host, token);
+fn email_template(host: &str, token: &str, to_address: &str) -> String {
+    let url = format!(
+        "https://{}/resetpassword?email={}&token={}",
+        host, to_address, token
+    );
 
     format!(
         r#"<div>

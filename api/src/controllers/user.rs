@@ -1,6 +1,5 @@
 use actix_web::{
     cookie::{Cookie, CookieBuilder, SameSite},
-    dev::ConnectionInfo,
     web, HttpRequest, HttpResponse,
 };
 use bcrypt;
@@ -8,7 +7,7 @@ use bcrypt;
 use crate::helpers::{jwt::generate_jwt, password_reset::generate_password_reset_token};
 use crate::middlewares::auth::AuthorizedUser;
 use crate::server::AppState;
-use crate::types::{FindOneResult, LoginRequest, RegisterUserRequest};
+use crate::types::{FindOneResult, LoginRequest, RegisterUserRequest, ResetPasswordRequest};
 use crate::{errors::user::UserApiError, types::ForgotPasswordRequest};
 
 pub fn config(cfg: &mut web::ServiceConfig) {
@@ -17,6 +16,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(web::resource("/users/current").route(web::get().to(get_current_user)));
     cfg.service(web::resource("/users/logout").route(web::post().to(logout)));
     cfg.service(web::resource("/users/forgotpassword").route(web::post().to(forgot_password)));
+    cfg.service(web::resource("/users/resetpassword").route(web::post().to(reset_password)));
 }
 
 async fn register_user(
@@ -159,8 +159,44 @@ async fn forgot_password(
             Ok(HttpResponse::Ok().finish())
         }
     }
+}
 
-    // Ok(HttpResponse::Ok().finish())
+async fn reset_password(
+    data: web::Data<AppState>,
+    reset_password_info: web::Json<ResetPasswordRequest>,
+) -> Result<HttpResponse, UserApiError> {
+    if reset_password_info.token.is_empty() {
+        return Err(UserApiError::ExpiredResetPasswordToken);
+    }
+
+    if reset_password_info.email.is_empty() || reset_password_info.password.is_empty() {
+        return Err(UserApiError::BadResetPasswordRequest);
+    }
+
+    let user_service = &data.services_container.user_service.lock().unwrap();
+
+    let is_token_valid = user_service
+        .is_reset_password_token_valid(&reset_password_info.email, &reset_password_info.token)
+        .await
+        .map_err(|_| UserApiError::Unknown)?;
+
+    match is_token_valid {
+        false => Err(UserApiError::ExpiredResetPasswordToken),
+        true => {
+            let hashed_pass = bcrypt::hash(&reset_password_info.password, 10)
+                .map_err(|_| UserApiError::Unknown)?;
+            user_service
+                .update_password(&reset_password_info.email, &hashed_pass)
+                .await
+                .map_err(|_| UserApiError::Unknown)?;
+            user_service
+                .update_reset_password_token(&reset_password_info.email, None)
+                .await
+                .map_err(|_| UserApiError::Unknown)?;
+
+            Ok(HttpResponse::Ok().finish())
+        }
+    }
 }
 
 fn build_auth_cookie<'a>(token: &'a str) -> Cookie<'a> {

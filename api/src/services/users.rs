@@ -26,6 +26,12 @@ pub trait UsersServiceTrait {
         email: &str,
         token: Option<PasswordResetToken>,
     ) -> Result<(), UsersServiceError>;
+    async fn update_password(&self, email: &str, password: &str) -> Result<(), UsersServiceError>;
+    async fn is_reset_password_token_valid(
+        &self,
+        email: &str,
+        token: &str,
+    ) -> Result<bool, UsersServiceError>;
 }
 
 pub struct UsersService {
@@ -125,7 +131,7 @@ impl UsersServiceTrait for UsersService {
                 self.collection
                     .update_one(
                         doc! { "email": email },
-                        doc! {"$set": {"reset_password_token": bson::to_bson(&token)
+                        doc! {"$set": {"resetPasswordToken": bson::to_bson(&token)
                         .map_err(|_| UsersServiceError::Unknown)?}},
                         None,
                     )
@@ -138,13 +144,66 @@ impl UsersServiceTrait for UsersService {
                 self.collection
                     .update_one(
                         doc! { "email": email },
-                        doc! {"$unset": "reset_password_token"},
+                        doc! {"$unset": {"resetPasswordToken": ""}},
                         None,
                     )
                     .await
                     .map_err(|_| UsersServiceError::Unknown)?;
 
                 Ok(())
+            }
+        }
+    }
+
+    async fn update_password(&self, email: &str, password: &str) -> Result<(), UsersServiceError> {
+        self.collection
+            .update_one(
+                doc! { "email": email },
+                doc! {"$set": { "password": password }},
+                None,
+            )
+            .await
+            .map_err(|_| UsersServiceError::Unknown)?;
+
+        Ok(())
+    }
+
+    async fn is_reset_password_token_valid(
+        &self,
+        email: &str,
+        token: &str,
+    ) -> Result<bool, UsersServiceError> {
+        let user = self
+            .collection
+            .find_one(doc! { "email": email }, None)
+            .await
+            .map_err(|_| UsersServiceError::Unknown)?;
+
+        match user {
+            None => Ok(false),
+            Some(doc) => {
+                let user: UserDB = bson::from_bson(Bson::Document(doc)).unwrap();
+                let saved_token = user.reset_password_token;
+
+                match saved_token {
+                    None => Ok(false),
+                    Some(saved_token) => {
+                        if token != saved_token.token {
+                            return Ok(false);
+                        }
+
+                        let now = std::time::SystemTime::now()
+                            .duration_since(std::time::UNIX_EPOCH)
+                            .unwrap()
+                            .as_millis() as i64;
+
+                        match now.cmp(&saved_token.expires) {
+                            std::cmp::Ordering::Equal => Ok(true),
+                            std::cmp::Ordering::Less => Ok(true),
+                            std::cmp::Ordering::Greater => Ok(false),
+                        }
+                    }
+                }
             }
         }
     }
@@ -267,6 +326,147 @@ mod tests {
         let hashed_password = service.get_hashed_password(&id).await.unwrap();
 
         assert_eq!(hashed_password, "password");
+        mocks::drop_test_db(&db).await;
+    }
+
+    #[actix_rt::test]
+    #[serial]
+    async fn updates_user_password() {
+        let db = mocks::get_test_db().await;
+        let collection = db.collection("Users");
+
+        let user = get_mock_user();
+
+        let doc = bson::to_bson(&user)
+            .unwrap()
+            .as_document()
+            .unwrap()
+            .to_owned();
+        let inserted = collection.insert_one(doc, None).await.unwrap().inserted_id;
+        let id: bson::oid::ObjectId = bson::from_bson(inserted).unwrap();
+        let id = id.to_string();
+
+        let service = UsersService::new(collection);
+
+        service
+            .update_password("email@email.com", "new-password")
+            .await
+            .unwrap();
+
+        let new_pass = service.get_hashed_password(&id).await.unwrap();
+
+        assert_eq!(new_pass, "new-password");
+        mocks::drop_test_db(&db).await;
+    }
+
+    #[actix_rt::test]
+    #[serial]
+    async fn updates_reset_password_token() {
+        let db = mocks::get_test_db().await;
+        let collection = db.collection("Users");
+
+        let user = get_mock_user();
+
+        let doc = bson::to_bson(&user)
+            .unwrap()
+            .as_document()
+            .unwrap()
+            .to_owned();
+        collection.insert_one(doc, None).await.unwrap();
+
+        let service = UsersService::new(collection);
+
+        service
+            .update_reset_password_token(
+                "email@email.com",
+                Some(PasswordResetToken {
+                    token: String::from("abc"),
+                    expires: 10000000000000,
+                }),
+            )
+            .await
+            .unwrap();
+
+        let res = service
+            .is_reset_password_token_valid("email@email.com", "abc")
+            .await
+            .unwrap();
+
+        assert_eq!(res, true);
+        mocks::drop_test_db(&db).await;
+    }
+
+    #[actix_rt::test]
+    #[serial]
+    async fn rejects_invalid_token_value() {
+        let db = mocks::get_test_db().await;
+        let collection = db.collection("Users");
+
+        let user = get_mock_user();
+
+        let doc = bson::to_bson(&user)
+            .unwrap()
+            .as_document()
+            .unwrap()
+            .to_owned();
+        collection.insert_one(doc, None).await.unwrap();
+
+        let service = UsersService::new(collection);
+
+        service
+            .update_reset_password_token(
+                "email@email.com",
+                Some(PasswordResetToken {
+                    token: String::from("invalid"),
+                    expires: 10000000000000,
+                }),
+            )
+            .await
+            .unwrap();
+
+        let res = service
+            .is_reset_password_token_valid("email@email.com", "abc")
+            .await
+            .unwrap();
+
+        assert_eq!(res, false);
+        mocks::drop_test_db(&db).await;
+    }
+
+    #[actix_rt::test]
+    #[serial]
+    async fn rejects_expired_token_value() {
+        let db = mocks::get_test_db().await;
+        let collection = db.collection("Users");
+
+        let user = get_mock_user();
+
+        let doc = bson::to_bson(&user)
+            .unwrap()
+            .as_document()
+            .unwrap()
+            .to_owned();
+        collection.insert_one(doc, None).await.unwrap();
+
+        let service = UsersService::new(collection);
+
+        service
+            .update_reset_password_token(
+                "email@email.com",
+                Some(PasswordResetToken {
+                    token: String::from("abc"),
+                    expires: 100000000,
+                }),
+            )
+            .await
+            .unwrap();
+
+        let res = service
+            .is_reset_password_token_valid("email@email.com", "abc")
+            .await
+            .unwrap();
+
+        assert_eq!(res, false);
         mocks::drop_test_db(&db).await;
     }
 }

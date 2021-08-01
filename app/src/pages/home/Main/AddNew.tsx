@@ -78,7 +78,7 @@ export default function AddNew() {
         startIcon={<Bookmark />}
         aria-controls="add-menu"
       >
-        {t('home.list.fab')}
+        {t('home:list.fab')}
       </Button>
       <Popover
         id="add-menu"
@@ -127,7 +127,7 @@ export default function AddNew() {
                   disabled={creating}
                   onClick={onSave}
                 >
-                  {t('home.list.addNew.save')}
+                  {t('home:list.addNew.save')}
                 </Button>
                 {creating && (
                   <CircularProgress
