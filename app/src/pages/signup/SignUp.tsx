@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Link, Redirect } from 'react-router-dom';
 import {
   Box,
-  IconButton,
   InputAdornment,
   TextField,
   Typography,
@@ -10,18 +9,12 @@ import {
 } from '@material-ui/core';
 import { Formik } from 'formik';
 import { useTranslation } from 'react-i18next';
-import {
-  AlternateEmailOutlined,
-  LockOpen,
-  PersonOutline,
-  Visibility,
-  VisibilityOff,
-} from '@material-ui/icons';
+import { AlternateEmailOutlined, PersonOutline } from '@material-ui/icons';
 import { useDispatch } from 'react-redux';
 
 import { useAuth, useCurrentUser } from 'hooks';
 import { Routes } from 'const';
-import { LoadingButton } from 'components';
+import { LoadingButton, PasswordInput } from 'components';
 import * as validators from 'utils/validators';
 import { signUpUser } from 'store';
 import { ReactComponent as SignUpSVG } from 'assets/sign_up.svg';
@@ -46,7 +39,6 @@ export const SignUp = () => {
   const { t } = useTranslation();
   const [, loading] = useCurrentUser();
   const dispatch = useDispatch();
-  const [showPassword, setShowPassword] = useState(false);
   const classes = useStyles();
 
   if (isAuthenticated) {
@@ -70,10 +62,6 @@ export const SignUp = () => {
     }
 
     return errors;
-  };
-
-  const handleShowPasswordClick = () => {
-    setShowPassword((prev) => !prev);
   };
 
   return (
@@ -188,37 +176,15 @@ export const SignUp = () => {
               placeholder={t('signup:form.email')}
               error={!!errors.email && touched.email}
             />
-            <TextField
-              id="password"
-              name="password"
+            <PasswordInput
               className={classes.formInput}
-              variant="outlined"
               label={
                 errors.password && touched.password
                   ? errors.password
                   : t('signup:form.password')
               }
-              type={showPassword ? 'text' : 'password'}
               onChange={handleChange}
               onBlur={handleBlur}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockOpen fontSize="small" />
-                  </InputAdornment>
-                ),
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={handleShowPasswordClick}>
-                      {showPassword ? (
-                        <VisibilityOff fontSize="small" color="primary" />
-                      ) : (
-                        <Visibility fontSize="small" color="primary" />
-                      )}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
               placeholder={t('signup:form.password')}
               error={!!errors.password && touched.password}
               helperText={t('signup:form.helperText.password')}

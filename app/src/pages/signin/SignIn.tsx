@@ -18,7 +18,7 @@ import { ReactComponent as SignInSVG } from 'assets/sign_in.svg';
 import { Routes } from 'const';
 import { loginUser } from 'store';
 import { useAuth, useCurrentUser } from 'hooks';
-import { LoadingButton } from 'components';
+import { LoadingButton, PasswordInput } from 'components';
 import useStyles from './styles';
 
 interface FormData {
@@ -35,14 +35,12 @@ export function SignIn() {
   const dispatch = useDispatch();
   const [, loading, error] = useCurrentUser();
   const isAuthenticated = useAuth();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const classes = useStyles();
 
   const alertClassName = classNames(classes.errorAlert, {
     [classes.errorAlertVisible]: !!error,
   });
-
-  console.log(i18n);
 
   if (isAuthenticated) {
     return <Redirect to={Routes.HOME} />;
@@ -128,27 +126,16 @@ export function SignIn() {
               }}
               placeholder={t('signin:form.email')}
             />
-            <TextField
-              id="password"
-              name="password"
+            <PasswordInput
               className={classes.formInput}
-              variant="outlined"
               label={
                 errors.password && touched.password
                   ? errors.password
                   : t('signin:form.password')
               }
               error={!!errors.password && touched.password}
-              type="password"
               onChange={handleChange}
               onBlur={handleBlur}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <LockOpen fontSize="small" />
-                  </InputAdornment>
-                ),
-              }}
               placeholder={t('signin:form.password')}
             />
             <LoadingButton
