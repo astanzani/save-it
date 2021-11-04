@@ -8,6 +8,8 @@ const translations = {
   'form.error.password': 'Required',
   'form.createAccount': 'Create an account',
   'form.forgotPassword': 'Forgot your password?',
+  'form.error.signIn': 'Wrong email or password',
+  'form.error.unknown': 'An unknown error ocurred, please try again later',
 };
 
 export default translations;

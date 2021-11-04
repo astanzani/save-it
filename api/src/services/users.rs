@@ -18,7 +18,7 @@ pub enum UsersServiceError {
 #[async_trait]
 pub trait UsersServiceTrait {
     async fn create(&self, user: RegisterUserRequest) -> Result<String, Error>;
-    async fn get_by_id(&self, id: &str) -> Result<FindOneResult<UserResponse>, Error>;
+    async fn get_by_id(&self, id: &str) -> Result<FindOneResult<UserResponse>, UsersServiceError>;
     async fn get_by_email(&self, email: &str) -> Result<FindOneResult<UserResponse>, Error>;
     async fn get_hashed_password(&self, id: &str) -> Result<String, Error>;
     async fn update_reset_password_token(
@@ -62,13 +62,14 @@ impl UsersServiceTrait for UsersService {
         Ok(String::from(inserted_id))
     }
 
-    async fn get_by_id(&self, id: &str) -> Result<FindOneResult<UserResponse>, Error> {
+    async fn get_by_id(&self, id: &str) -> Result<FindOneResult<UserResponse>, UsersServiceError> {
         let object_id = bson::oid::ObjectId::with_string(id).unwrap();
 
         let result = self
             .collection
             .find_one(doc! { "_id": object_id }, None)
-            .await?;
+            .await
+            .map_err(|_| UsersServiceError::Unknown)?;
 
         match result {
             Some(document) => {

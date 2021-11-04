@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Link as MuiLink,
@@ -7,7 +7,7 @@ import {
   Typography,
 } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
-import { AlternateEmailOutlined, LockOpen } from '@material-ui/icons';
+import { AlternateEmailOutlined } from '@material-ui/icons';
 import { Redirect, Link } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { useTranslation } from 'react-i18next';
@@ -16,10 +16,12 @@ import { Formik } from 'formik';
 
 import { ReactComponent as SignInSVG } from 'assets/sign_in.svg';
 import { Routes } from 'const';
-import { loginUser } from 'store';
-import { useAuth, useCurrentUser } from 'hooks';
+import { login, getCurrentUser, UserApiError } from 'transport/user';
+import { actions as userActions } from 'store/user';
+import { useAuth } from 'hooks';
 import { LoadingButton, PasswordInput } from 'components';
 import useStyles from './styles';
+import { setStorageItem } from 'utils';
 
 interface FormData {
   email: string;
@@ -33,13 +35,17 @@ interface FormDataErrors {
 
 export function SignIn() {
   const dispatch = useDispatch();
-  const [, loading, error] = useCurrentUser();
+  // const [, , error] = useCurrentUser();
   const isAuthenticated = useAuth();
+  const [signInErrorMessage, setSignInErrorMessage] = useState<
+    undefined | string
+  >(undefined);
+  const [loading, setLoading] = useState(false);
   const { t } = useTranslation();
   const classes = useStyles();
 
   const alertClassName = classNames(classes.errorAlert, {
-    [classes.errorAlertVisible]: !!error,
+    [classes.errorAlertVisible]: !!signInErrorMessage,
   });
 
   if (isAuthenticated) {
@@ -59,15 +65,31 @@ export function SignIn() {
     return errors;
   };
 
+  const signIn = async (values: FormData) => {
+    try {
+      setLoading(true);
+      await login(values.email, values.password);
+      const user = await getCurrentUser();
+      dispatch(userActions.setUser(user));
+      setStorageItem('current-user', user);
+    } catch (e: any) {
+      if (e.message === UserApiError.SessionExpired) {
+        setSignInErrorMessage(t('signin:form.error.signIn'));
+      } else if (e.message === UserApiError.WrongLoginInfo) {
+        setSignInErrorMessage(t('signin:form.error.signIn'));
+      } else {
+        setSignInErrorMessage(t('signin:form.error.unknown'));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Box display="flex" flex="1">
       <Formik
         initialValues={{ email: '', password: '' }}
-        onSubmit={(values) => {
-          dispatch(
-            loginUser({ email: values.email, password: values.password })
-          );
-        }}
+        onSubmit={signIn}
         validateOnMount={true}
         validateOnBlur={true}
         validate={validate}
@@ -148,6 +170,18 @@ export function SignIn() {
             >
               {t('signin:form.signIn')}
             </LoadingButton>
+            <LoadingButton
+              style={{ marginTop: 16 }}
+              variant="contained"
+              loading={false}
+              color="primary"
+              onClick={signIn.bind(null, {
+                email: 'rust@email.com',
+                password: 'rust',
+              })}
+            >
+              Sign in with test account
+            </LoadingButton>
             <Box display="flex" padding={4}>
               <Link
                 to={Routes.SIGN_UP}
@@ -169,7 +203,7 @@ export function SignIn() {
               severity="error"
               className={alertClassName}
             >
-              {error}
+              {signInErrorMessage}
             </Alert>
           </Box>
         )}

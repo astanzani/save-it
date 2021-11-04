@@ -22,12 +22,14 @@ import {
 import { useCurrentUser } from 'hooks';
 import { useTranslation } from 'react-i18next';
 import { useDispatch } from 'react-redux';
-import { logoutUser } from 'store';
+import { logout } from 'transport/user';
+import { actions as userActions } from 'store/user';
 import SettingsModal from '../Settings/Settings';
 import useStyles from './styles';
+import { deleteStorageItem } from 'utils';
 
 export default function UserInfo() {
-  const [userInfo] = useCurrentUser();
+  const userInfo = useCurrentUser();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { t } = useTranslation();
@@ -47,8 +49,10 @@ export default function UserInfo() {
     setAnchorEl(null);
   };
 
-  const onClickLogout = () => {
-    dispatch(logoutUser());
+  const onClickLogout = async () => {
+    await logout();
+    dispatch(userActions.setUser(null));
+    deleteStorageItem('current-user');
   };
 
   const handleSettingsClick = () => {

@@ -22,7 +22,7 @@ impl UsersServiceTrait for UserServiceMock {
         Ok(String::from("inserted-id"))
     }
 
-    async fn get_by_id(&self, _id: &str) -> Result<FindOneResult<UserResponse>, Error> {
+    async fn get_by_id(&self, _id: &str) -> Result<FindOneResult<UserResponse>, UsersServiceError> {
         Ok(FindOneResult::Found(UserResponse {
             id: String::from("id"),
             email: String::from("email"),

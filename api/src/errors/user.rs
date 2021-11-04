@@ -22,6 +22,9 @@ pub enum UserApiError {
     #[error("Your password reset request has expired")]
     ExpiredResetPasswordToken,
 
+    #[error("User session expired")]
+    SessionExpired,
+
     #[error("Unknown error")]
     Unknown,
 }
@@ -35,6 +38,7 @@ impl UserApiError {
             Self::BadForgotPasswordRequest => "BadForgotPasswordRequest".to_string(),
             Self::BadResetPasswordRequest => "BadResetPasswordRequest".to_string(),
             Self::ExpiredResetPasswordToken => "ExpiredResetPasswordToken".to_string(),
+            Self::SessionExpired => "SessionExpired".to_string(),
             Self::Unknown => "Unknown".to_string(),
         }
     }
@@ -56,6 +60,7 @@ impl ResponseError for UserApiError {
             Self::BadForgotPasswordRequest => StatusCode::BAD_REQUEST,
             Self::BadResetPasswordRequest => StatusCode::BAD_REQUEST,
             Self::ExpiredResetPasswordToken => StatusCode::FORBIDDEN,
+            Self::SessionExpired => StatusCode::UNAUTHORIZED,
             Self::Unknown => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }

@@ -8,6 +8,9 @@ const translations = {
   'form.error.password': 'Obrigatório',
   'form.createAccount': 'Criar uma conta',
   'form.forgotPassword': 'Esqueceu sua senha?',
+  'form.error.signIn': 'Email ou senha errados',
+  'form.error.unknown':
+    'Um erro desconhecido aconteceu, por favor tente novamente mais tarde',
 };
 
 export default translations;

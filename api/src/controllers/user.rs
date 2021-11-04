@@ -99,18 +99,19 @@ async fn login_user(
     }
 }
 
-async fn get_current_user(data: web::Data<AppState>, auth_user: AuthorizedUser) -> HttpResponse {
-    let on_user_found = |user| HttpResponse::Ok().json(user);
-
+async fn get_current_user(
+    data: web::Data<AppState>,
+    auth_user: AuthorizedUser,
+) -> Result<HttpResponse, UserApiError> {
     let user_service = &data.services_container.user_service.lock().unwrap();
     let result = user_service.get_by_id(&auth_user.id).await;
 
     match result {
         Ok(result) => match result {
-            FindOneResult::Found(user) => on_user_found(user),
-            FindOneResult::NotFound => HttpResponse::Unauthorized().finish(),
+            FindOneResult::Found(user) => Ok(HttpResponse::Ok().json(user)),
+            FindOneResult::NotFound => Err(UserApiError::SessionExpired),
         },
-        _ => HttpResponse::InternalServerError().finish(),
+        _ => Err(UserApiError::Unknown),
     }
 }
 
@@ -272,7 +273,7 @@ mod tests {
             id: String::from("id"),
         };
 
-        let mut response = get_current_user(data, auth_user).await;
+        let mut response = get_current_user(data, auth_user).await.unwrap();
         let json = response.take_body();
         let json = json.as_ref().unwrap();
 

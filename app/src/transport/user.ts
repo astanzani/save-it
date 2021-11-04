@@ -1,13 +1,24 @@
 import { NewUserInfo, User } from 'types';
 import fetch from './fetch';
 import { HTTPMethod } from './types';
+import { ApiError } from './errors';
+
+export enum UserApiError {
+  SessionExpired = 'SessionExpired',
+  WrongLoginInfo = 'WrongLoginInfo',
+}
 
 const BASE_URL = '/api/v1/users/';
 
 export async function getCurrentUser(): Promise<User> {
-  // TODO throw if !resp.ok
   const url = BASE_URL + 'current';
   const response = await fetch(url);
+
+  if (!response.ok) {
+    const apiError: ApiError = await response.json();
+    throw new Error(apiError.error);
+  }
+
   const user = await response.json();
   return user as User;
 }
@@ -20,8 +31,9 @@ export async function login(email: string, password: string) {
   };
   const response = await fetch(url, HTTPMethod.POST, payload);
 
-  if (response.status === 401) {
-    throw new Error('Wrong Email or Password');
+  if (!response.ok) {
+    const apiError: ApiError = await response.json();
+    throw new Error(apiError.error);
   }
 }
 

@@ -1,5 +1,5 @@
-import { Box } from '@material-ui/core';
 import React, { useEffect } from 'react';
+import { Box } from '@material-ui/core';
 import { startFeed } from 'transport';
 import Navigation from './Nav';
 import Main from './Main/Main';
@@ -18,7 +18,7 @@ export function Home() {
     document.documentElement.lang = language;
   }, [i18n, language]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     startFeed();
     dispatch(getAllBookmarks());
   }, [dispatch]);

@@ -12,13 +12,15 @@ import { useTranslation } from 'react-i18next';
 import { AlternateEmailOutlined, PersonOutline } from '@material-ui/icons';
 import { useDispatch } from 'react-redux';
 
-import { useAuth, useCurrentUser } from 'hooks';
+import { useAuth } from 'hooks';
 import { Routes } from 'const';
 import { LoadingButton, PasswordInput } from 'components';
 import * as validators from 'utils/validators';
-import { signUpUser } from 'store';
+import { getCurrentUser, register } from 'transport/user';
+import { actions as userActions } from 'store';
 import { ReactComponent as SignUpSVG } from 'assets/sign_up.svg';
 import useStyles from './styles';
+import { setStorageItem } from 'utils';
 
 interface FormData {
   firstName: string;
@@ -37,7 +39,7 @@ interface FormDataErrors {
 export const SignUp = () => {
   const isAuthenticated = useAuth();
   const { t } = useTranslation();
-  const [, loading] = useCurrentUser();
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const classes = useStyles();
 
@@ -64,6 +66,24 @@ export const SignUp = () => {
     return errors;
   };
 
+  const onSubmit = async (values: FormData) => {
+    try {
+      setLoading(true);
+      await register({
+        email: values.email,
+        firstName: values.firstName,
+        lastName: values.lastName,
+        password: values.password,
+        displayName: `${values.firstName} ${values.lastName}`,
+      });
+      const user = await getCurrentUser();
+      dispatch(userActions.setUser(user));
+      setStorageItem('current-user', user);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Box display="flex" flex="1">
       <Formik
@@ -71,10 +91,7 @@ export const SignUp = () => {
         validateOnMount={true}
         validateOnBlur={true}
         validate={validate}
-        onSubmit={(values) => {
-          const { email, password, firstName, lastName } = values;
-          dispatch(signUpUser({ email, password, firstName, lastName }));
-        }}
+        onSubmit={onSubmit}
       >
         {({
           handleChange,

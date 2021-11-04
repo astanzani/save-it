@@ -1,16 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Box, InputAdornment, TextField, Typography } from '@material-ui/core';
 import { Formik } from 'formik';
 import { useTranslation } from 'react-i18next';
 import { AlternateEmailOutlined } from '@material-ui/icons';
-import { useDispatch } from 'react-redux';
 import { Alert } from '@material-ui/lab';
 import classNames from 'classnames';
 
 import * as validators from 'utils/validators';
 import { LoadingButton } from 'components';
-import { forgotPassword } from 'store/user';
-import { useCurrentUser, usePrevious } from 'hooks';
+import { forgotPassword } from 'transport/user';
 import useStyles from './styles';
 
 interface FormData {
@@ -23,21 +21,14 @@ interface FormDataErrors {
 
 export function ForgotPassword() {
   const { t } = useTranslation();
-  const dispatch = useDispatch();
-  const [, loading, error] = useCurrentUser();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<undefined | string>(undefined);
   const [emailSent, setEmailSent] = useState(false);
   const classes = useStyles();
 
   const alertClassName = classNames(classes.errorAlert, {
     [classes.errorAlertVisible]: !!error || emailSent,
   });
-
-  const prevLoading = usePrevious(loading);
-  useEffect(() => {
-    if (prevLoading && !loading && !error) {
-      setEmailSent(true);
-    }
-  }, [loading, prevLoading, error]);
 
   const validate = (values: FormData) => {
     let errors: FormDataErrors = {};
@@ -49,14 +40,24 @@ export function ForgotPassword() {
     return errors;
   };
 
+  const onSubmit = async (values: FormData) => {
+    try {
+      setLoading(true);
+      await forgotPassword(values.email);
+      setEmailSent(true);
+    } catch (e) {
+      setError('UNKNOWN');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <Box display="flex" flex="1">
       <Formik
         initialValues={{ email: '' }}
         validate={validate}
-        onSubmit={(values) => {
-          dispatch(forgotPassword(values.email));
-        }}
+        onSubmit={onSubmit}
         validateOnBlur={true}
         validateOnMount={true}
       >

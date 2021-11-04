@@ -16,11 +16,7 @@ export const store = configureStore({
     settings: settingsReducer,
   },
   preloadedState: {
-    user: {
-      info: currentUser,
-      loading: false,
-      error: undefined,
-    },
+    user: currentUser,
   },
 });
 
