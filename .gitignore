@@ -27,3 +27,7 @@ yarn-error.log*
 .idea
 *.iml
 .vscode/
+
+# cypress
+/**/videos
+/**/screenshots

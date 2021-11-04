@@ -2,7 +2,7 @@ import React from 'react';
 import { Box, Link, Typography } from '@material-ui/core';
 import { useTranslation } from 'react-i18next';
 import { Bookmark } from 'types';
-import { DotSeparator, HighlightedText } from '../../common';
+import { DotSeparator, HighlightedText } from '../../../components';
 import useStyles from './styles';
 
 interface Props {

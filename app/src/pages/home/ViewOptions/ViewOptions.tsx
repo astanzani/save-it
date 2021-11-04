@@ -11,10 +11,10 @@ export default function ViewOptions() {
   return (
     <Box display="flex">
       <Button startIcon={<SortOutlined />} className={classes.button}>
-        {t('home.list.sort.dropdown.dateAdded')}
+        {t('home:list.sort.dropdown.dateAdded')}
       </Button>
       <Button startIcon={<ViewListOutlined />} className={classes.button}>
-        {t('home.list.viewOptions.dropdown.list')}
+        {t('home:list.viewOptions.dropdown.list')}
       </Button>
     </Box>
   );

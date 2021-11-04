@@ -4,14 +4,14 @@ use actix_web::{
 };
 use futures::future::{err, ok, Ready};
 
-use crate::helpers::jwt::parse_jwt;
+use crate::{errors::user::UserApiError, helpers::jwt::parse_jwt};
 
 pub struct AuthorizedUser {
     pub id: String,
 }
 
 impl FromRequest for AuthorizedUser {
-    type Error = Error;
+    type Error = UserApiError;
     type Future = Ready<Result<Self, Self::Error>>;
     type Config = ();
 
@@ -23,14 +23,10 @@ impl FromRequest for AuthorizedUser {
                 let authorized_user = parse_jwt(&token);
                 match authorized_user {
                     Ok(authorized_user) => ok(authorized_user),
-                    Err(_) => err(ErrorUnauthorized(
-                        "Failed to parse authentication token from request",
-                    )),
+                    Err(_) => err(UserApiError::SessionExpired),
                 }
             }
-            None => err(ErrorUnauthorized(
-                "Failed to parse authentication token from request",
-            )),
+            None => err(UserApiError::SessionExpired),
         }
     }
 }

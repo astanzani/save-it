@@ -2,6 +2,7 @@ use dotenv::dotenv;
 use std::io;
 
 mod controllers;
+mod errors;
 mod helpers;
 mod loaders;
 mod middlewares;
